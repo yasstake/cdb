@@ -31,6 +31,22 @@ const TRADE_SELL_LIQUID = 7
 // action, time, 0,, volume,
 const OPEN_INTEREST = 10
 
+// Open Value
+// action, time, 0, volume
+const OPEN_VALUE = 11
+
+// Turn Over
+// action, time, 0, volume
+const TURN_OVER = 12
+
+// Funding Rate
+// action, time, 0, volume, next time
+const FUNDING_RATE = 20
+
+// Next Funding Rate
+// action, time, 0, volume, next time
+const PREDICTED_FUNDING_RATE = 21
+
 var DB_ROOT = "/tmp/BITLOG"
 
 const VOLUME_MAG = 1000

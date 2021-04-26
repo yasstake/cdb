@@ -21,6 +21,10 @@ func make_rec(action int, time int64, price float64, volume float64) string {
 	return fmt.Sprintf("%d,%d,%d,%d\n", action, time, int(price*10), int(volume*10))
 }
 
+func make_rec_op(action int, time int64, price float64, volume float64, option string) string {
+	return fmt.Sprintf("%d,%d,%d,%d,%s\n", action, time, int(price*10), int(volume*10), option)
+}
+
 type Response struct {
 	Success bool    `json:"success"`
 	Message string  `json:"ret_msg"`
@@ -107,8 +111,6 @@ func (c *TradeRec) ToLog() (result string) {
 	return make_rec(action, c.Time, price, volume)
 }
 
-type InstrumentSnapshot Instrument
-
 type InstrumentDelta struct {
 	Delete []Instrument `json:"delete"`
 	Update []Instrument `json:"update"`
@@ -141,10 +143,46 @@ type Instrument struct {
 	//`json:"cross_seq"`//:6183139859,
 	//`json:"created_at"`//:"2018-11-14T16:33:26Z",
 	//`json:"updated_at"`//:"2021-04-26T15:05:12Z",
-	//`json:"next_funding_time"`//:"2021-04-26T16:00:00Z",
+	NextFundingTime string `json:"next_funding_time"` //:"2021-04-26T16:00:00Z",
 	//`json:"countdown_hour"`//:1},
-	//`json:"cross_seq"`//:6183139917,
-	Time int `json:"timestamp_e6"` //:1619449512968696
+	Time int64
+}
+
+func (c *Instrument) ToLog() (result string) {
+	// Open Interest
+	if c.OpenInterest != 0 {
+		result += make_rec(trans.OPEN_INTEREST, c.Time, 0, float64(c.OpenInterest))
+	}
+
+	// Open Value
+	if c.OpenValue != 0 {
+		result += make_rec(trans.OPEN_VALUE, c.Time, 0, float64(c.OpenValue))
+	}
+
+	// TurnOver
+	if c.TotalTurnOver != 0 {
+		result += make_rec(trans.TURN_OVER, c.Time, 0, float64(c.TotalTurnOver))
+	}
+
+	if c.FundingRate != 0 {
+		result += make_rec_op(trans.FUNDING_RATE, c.Time, 0, float64(c.FundingRate), c.NextFundingTime)
+	}
+	if c.PredictedFundingRate != 0 {
+		result += make_rec_op(trans.PREDICTED_FUNDING_RATE, c.Time, 0, float64(c.PredictedFundingRate), c.NextFundingTime)
+	}
+
+	return result
+}
+
+func parse_iso_time(t string) time.Time {
+	const layout = "2006-01-02T15:04:05Z"
+	result, err := time.Parse(layout, t)
+
+	if err != nil {
+		log.Fatal("Dateformat error in log ", err, t)
+	}
+
+	return result
 }
 
 func order_book(m string) (result string) {
@@ -236,7 +274,17 @@ func trade(message json.RawMessage) (result string) {
 	return result
 }
 
-func instrument(message Message) (result string) {
+func instrument_snapshot(message json.RawMessage, time int64) (result string) {
+	var data Instrument
+
+	err := json.Unmarshal(message, &data)
+	if err != nil {
+		log.Fatalln("Fail to pase message", err, message)
+	}
+
+	data.Time = time
+	result += data.ToLog()
+
 	return result
 }
 
