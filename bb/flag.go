@@ -70,7 +70,7 @@ func (c *FlagFile) Check_other_process_loop(sec int, done chan struct{}) {
 		}
 
 		if 0 < count {
-			log.Println("Other Process flag found", c.Path, count, "[sec]")
+			log.Println("[Other Process flag found]", c.Path, count, "[sec]")
 		}
 
 		if sec < count {

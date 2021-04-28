@@ -3,7 +3,7 @@
 
 build:
 	-mkdir bin
-	go build -o ./bin/cdb ./loader/main.go
+	go build -o ./bin/load ./loader/main.go
 
 run:
 	go run ./loader/main.go  
@@ -18,7 +18,7 @@ clean:
 	rm -rf ./bin
 
 import: build
-	./bin/cdb -load ../LOGFILES/BB*
+	./bin/load -load ../LOGFILES/comp.log.gz
 
 
 ws:

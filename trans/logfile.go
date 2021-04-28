@@ -114,7 +114,8 @@ type Transaction struct {
 	Action     int8
 	Time_stamp int64
 	Price      int32
-	Volume     int32
+	Volume     int64
+	NextTime   int64
 }
 
 func (c *Transaction) info_string() (result string) {
@@ -122,6 +123,7 @@ func (c *Transaction) info_string() (result string) {
 	result += "{Action:" + strconv.Itoa(int(c.Action)) + "}"
 	result += "{Price:" + strconv.Itoa(int(c.Price)) + "}"
 	result += "{vol:" + strconv.Itoa(int(c.Volume)) + "}"
+	result += "{next_time:" + strconv.Itoa(int(c.NextTime)) + "}"
 
 	return result
 }
@@ -232,6 +234,11 @@ type Chunk struct {
 	bit_board Board
 	ask_board Board
 	trans     Transactions
+
+	/* Ensure one funding record in one chunk we must buffer latest info
+	funding_rate         Transaction
+	funding_rate_predict Transaction
+	*/
 }
 
 func (c Chunk) info_string() string {
@@ -269,6 +276,7 @@ func (c *Chunk) dump() {
 
 	c.bit_board.save(stream)
 	c.ask_board.save(stream)
+
 	c.trans.save(stream)
 }
 
@@ -547,6 +555,9 @@ func Load_log(file string) (chunk Chunk) {
 
 	chunk.init()
 
+	var current_time int64
+	var current_price int32
+
 	for {
 		row, err := r.Read()
 		if err == io.EOF {
@@ -559,18 +570,21 @@ func Load_log(file string) (chunk Chunk) {
 				record.Action = int8(r)
 			case 1: // Time(us)
 				t, _ := strconv.ParseInt(v, 10, 64)
-				record.Time_stamp = t * 1000 // convert to ns
-			/*
-				case 2: // Seq
-					record.seq, _ = strconv.Atoi(v)
-			*/
-			case 3: // Price
+				record.Time_stamp = (t + current_time) * 1_000_000 // convert to ns
+				current_time = t + current_time
+
+			case 2: // Price
 				r, _ := strconv.Atoi(v)
-				record.Price = int32(r)
-			case 4: // volume
+				price := int32(r)
+				record.Price = price + current_price
+				current_price = price + current_price
+			case 3: // volume
 				// TODO: FIX omit under floating point
-				r, _ := strconv.ParseFloat(v, 64)
-				record.Volume = int32(r * VOLUME_MAG) // 0.001 -> 1
+				r, _ := strconv.ParseInt(v, 10, 64)
+				record.Volume = r
+			case 4: // Time Info
+				t, _ := strconv.ParseInt(v, 10, 64)
+				record.NextTime = t
 			}
 		}
 
@@ -610,6 +624,17 @@ func Load_log(file string) (chunk Chunk) {
 			}
 		}
 
+		/* Must buffer latest funding record to chunk
+		else if record.Action == FUNDING_RATE {
+			chunk.funding_rate = record
+		} else if record.Action == PREDICTED_FUNDING_RATE {
+			chunk.funding_rate_predict = record
+		}
+		*/
+
+		if len(chunk.trans) == 0 {
+
+		}
 		chunk.append(record)
 	}
 

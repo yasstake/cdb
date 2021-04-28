@@ -13,12 +13,12 @@ var tr Transactions
 var bd Board
 
 func init2() {
-	t1 = Transaction{1, 2, 3, 4}
-	t2 = Transaction{2, 2, 3, 4}
-	t3 = Transaction{3, 2, 3, 4}
-	t4 = Transaction{4, 2, 3, 4}
-	t5 = Transaction{5, 2, 3, 4}
-	t6 = Transaction{6, 2, 3, 4}
+	t1 = Transaction{1, 2, 3, 4, 7}
+	t2 = Transaction{2, 2, 3, 4, 9}
+	t3 = Transaction{3, 2, 3, 4, 0}
+	t4 = Transaction{4, 2, 3, 4, 0}
+	t5 = Transaction{5, 2, 3, 4, 0}
+	t6 = Transaction{6, 2, 3, 4, 0}
 	tr = Transactions{t1, t2, t3, t4, t5, t6}
 	bd.init()
 	bd.set(1, 1)

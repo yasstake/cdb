@@ -11,7 +11,7 @@ import (
 )
 
 func make_file_name(base string) (dir string, file string) {
-	time := time.Now()
+	time := time.Now().UTC()
 
 	yyyy := fmt.Sprintf("%04d", time.Year())
 	mm := fmt.Sprintf("%02d", time.Month())
@@ -29,6 +29,7 @@ func Create_writer(base string) io.WriteCloser {
 	os.MkdirAll(dir, 0777)
 
 	full_path := filepath.Join(dir, file)
+	log.Println("[Create Logging file]", full_path)
 	fp, err := os.Create(full_path)
 
 	if err != nil {

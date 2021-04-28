@@ -441,6 +441,8 @@ func instrument_delta(message json.RawMessage, time int64) (result string) {
 }
 
 func Connect(flag_file_name string, w io.WriteCloser) {
+	defer w.Close()
+
 	var flag_file FlagFile
 	flag_file.Init(flag_file_name)
 	flag_file.Create()
@@ -461,14 +463,11 @@ func Connect(flag_file_name string, w io.WriteCloser) {
 	}
 	defer c.Close()
 
-	done := make(chan struct{})
-
 	write := func(s string) {
 		w.Write([]byte(s))
 	}
 
 	go func() {
-		defer close(done)
 		for {
 			_, message, err := c.ReadMessage()
 			if err != nil {
@@ -522,17 +521,6 @@ func Connect(flag_file_name string, w io.WriteCloser) {
 
 	for {
 		select {
-		case <-done:
-			return
-			/*
-				case t := <-ticker.C:
-					err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
-					if err != nil {
-						log.Println("write:", err)
-						return
-					}
-			*/
-
 		case <-peer_reset:
 			log.Println("Peer reset")
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
@@ -550,11 +538,8 @@ func Connect(flag_file_name string, w io.WriteCloser) {
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Println("write close:", err)
+
 				return
-			}
-			select {
-			case <-done:
-			case <-time.After(time.Second):
 			}
 			return
 		}
