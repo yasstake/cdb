@@ -9,12 +9,6 @@ import (
 	"time"
 )
 
-type FileInfo struct {
-	files      []string
-	start_time time.Time
-	end_time   time.Time
-}
-
 func file_list(base_path string) []string {
 	files, err := ioutil.ReadDir(base_path)
 

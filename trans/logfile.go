@@ -180,9 +180,7 @@ func (board *Board) set(price int, volume int) {
 }
 
 func (board *Board) copy() Board {
-	var copy_board Board
-
-	copy_board = make(Board)
+	copy_board := make(Board)
 
 	for key, value := range *board {
 		copy_board[key] = value
@@ -202,7 +200,7 @@ func (board *Board) save(stream io.WriteCloser) {
 
 	var buf boardBuf
 
-	for price, _ := range *board {
+	for price := range *board {
 		buf.Price = uint32(price)
 		buf.Vol = uint32((*board)[price])
 		binary.Write(stream, binary.LittleEndian, &buf)
@@ -384,7 +382,7 @@ func (c *Ohlcv) sell_buy(time int64, price int, volume int, buy bool) {
 func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, err bool) {
 	result.init()
 
-	for i, _ := range c.trans {
+	for i := range c.trans {
 
 		time_stamp := date_time(c.trans[i].Time_stamp)
 

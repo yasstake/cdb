@@ -416,7 +416,7 @@ func instrument_delta(message json.RawMessage, time int64) (result string) {
 
 	result = ""
 
-	for i, _ := range data.Update {
+	for i := range data.Update {
 		instrument_data.update(data.Update[i])
 
 		data.Update[i].Time = time
@@ -424,14 +424,14 @@ func instrument_delta(message json.RawMessage, time int64) (result string) {
 	}
 
 	// Assume Delete and Insert message is not implemented
-	for i, _ := range data.Delete {
+	for i := range data.Delete {
 		data.Delete[i].Time = time
 		log.Println("INFO delete ", data.Delete[i])
 
 		result += data.Delete[i].ToLog()
 	}
 
-	for i, _ := range data.Insert {
+	for i := range data.Insert {
 		log.Println("INFO Insert", data.Insert[i])
 		data.Insert[i].Time = time
 		result += data.Insert[i].ToLog()
