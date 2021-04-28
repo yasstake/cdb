@@ -4,10 +4,12 @@ import (
 	"cdb/trans"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -17,12 +19,28 @@ const CHANNEL_ORDER_BOOK_200 = "orderBook_200.100ms.BTCUSD"
 const CHANNEL_TRADE = "trade.BTCUSD"
 const CHANNEL_INFO = "instrument_info.100ms.BTCUSD"
 
-func make_rec(action int, time int64, price float64, volume float64) string {
-	return fmt.Sprintf("%d,%d,%d,%d\n", action, time, int(price*10), int(volume*10))
+var (
+	last_time  int64
+	last_price int
+)
+
+func make_rec(action int, time int64, price float64, volume float64) (result string) {
+	price10 := int(price * 10)
+
+	result = fmt.Sprintf("%d,%d,%d,%d\n", action, time-last_time, price10-last_price, int(volume*10))
+	last_time = time
+	last_price = price10
+
+	return result
 }
 
-func make_rec_op(action int, time int64, price float64, volume float64, option string) string {
-	return fmt.Sprintf("%d,%d,%d,%d,%s\n", action, time, int(price*10), int(volume*10), option)
+func make_rec_op(action int, time int64, price float64, volume float64, option string) (result string) {
+	price10 := int(price * 10)
+	result = fmt.Sprintf("%d,%d,%d,%d,%s\n", action, time-last_time, price10-last_price, int(volume*10), option)
+	last_time = time
+	last_price = price10
+
+	return result
 }
 
 type Response struct {
@@ -148,27 +166,107 @@ type Instrument struct {
 	Time int64
 }
 
+func (c *Instrument) update(d Instrument) {
+	if d.Id != 0 {
+		c.Id = d.Id
+	}
+	if d.Symbol != "" {
+		c.Symbol = d.Symbol
+	}
+	if d.LastPrice != 0 {
+		c.LastPrice = d.LastPrice
+	}
+	if d.BitPrice != 0 {
+		c.BitPrice = d.BitPrice
+	}
+	if d.AskPrice != 0 {
+		c.AskPrice = d.AskPrice
+	}
+	if d.LastTickDirection != "" {
+		c.LastTickDirection = d.LastTickDirection
+	}
+	if d.PrevPrice != 0 {
+		c.PrevPrice = d.PrevPrice
+	}
+	if d.HighPrice != 0 {
+		c.HighPrice = d.HighPrice
+	}
+	if d.LowPrice != 0 {
+		c.LowPrice = d.LowPrice
+	}
+	if d.MarkPrice != 0 {
+		c.MarkPrice = d.MarkPrice
+	}
+	if d.IndexPrice != 0 {
+		c.IndexPrice = d.IndexPrice
+	}
+	if d.OpenInterest != 0 {
+		c.OpenInterest = d.OpenInterest
+	}
+	if d.OpenValue != 0 {
+		c.OpenValue = d.OpenValue
+	}
+	if d.TotalTurnOver != 0 {
+		c.TotalTurnOver = d.TotalTurnOver
+	}
+	if d.TurnOver24h != 0 {
+		c.TurnOver24h = d.TurnOver24h
+	}
+	if d.TotalVolume != 0 {
+		c.TotalVolume = d.TotalVolume
+	}
+	if d.Volume24h != 0 {
+		c.Volume24h = d.Volume24h
+	}
+	if d.FundingRate != 0 {
+		c.FundingRate = d.FundingRate
+	}
+	if d.PredictedFundingRate != 0 {
+		c.PredictedFundingRate = d.PredictedFundingRate
+	}
+	if d.NextFundingTime != "" {
+		c.NextFundingTime = d.NextFundingTime
+	}
+	if d.Time != 0 {
+		c.Time = d.Time
+	}
+
+}
+
 func (c *Instrument) ToLog() (result string) {
+	result = ""
+
+	t := c.Time / 1000
+
 	// Open Interest
 	if c.OpenInterest != 0 {
-		result += make_rec(trans.OPEN_INTEREST, c.Time, 0, float64(c.OpenInterest))
+		result += make_rec_op(trans.OPEN_INTEREST, t, 0, float64(c.OpenInterest), "")
 	}
 
 	// Open Value
 	if c.OpenValue != 0 {
-		result += make_rec(trans.OPEN_VALUE, c.Time, 0, float64(c.OpenValue))
+		result += make_rec_op(trans.OPEN_VALUE, t, 0, float64(c.OpenValue), "")
 	}
 
 	// TurnOver
 	if c.TotalTurnOver != 0 {
-		result += make_rec(trans.TURN_OVER, c.Time, 0, float64(c.TotalTurnOver))
+		result += make_rec_op(trans.TURN_OVER, t, 0, float64(c.TotalTurnOver), "")
 	}
 
 	if c.FundingRate != 0 {
-		result += make_rec_op(trans.FUNDING_RATE, c.Time, 0, float64(c.FundingRate), c.NextFundingTime)
+		if c.NextFundingTime != "" {
+			result += make_rec_op(trans.FUNDING_RATE, t, 0, float64(c.FundingRate), time_to_ms_str(c.NextFundingTime))
+		} else {
+			result += make_rec_op(trans.FUNDING_RATE, t, 0, float64(c.FundingRate), time_to_ms_str(instrument_data.NextFundingTime))
+		}
 	}
+
 	if c.PredictedFundingRate != 0 {
-		result += make_rec_op(trans.PREDICTED_FUNDING_RATE, c.Time, 0, float64(c.PredictedFundingRate), c.NextFundingTime)
+		if c.NextFundingTime != "" {
+			result += make_rec_op(trans.PREDICTED_FUNDING_RATE, t, 0, float64(c.PredictedFundingRate), time_to_ms_str(c.NextFundingTime))
+		} else {
+			result += make_rec_op(trans.FUNDING_RATE, t, 0, float64(c.FundingRate), time_to_ms_str(instrument_data.NextFundingTime))
+		}
 	}
 
 	return result
@@ -179,10 +277,23 @@ func parse_iso_time(t string) time.Time {
 	result, err := time.Parse(layout, t)
 
 	if err != nil {
-		log.Fatal("Dateformat error in log ", err, t)
+		log.Println("Dateformat error in log ", err, t)
 	}
 
 	return result
+}
+
+func time_to_ms(ts string) int64 {
+	t := parse_iso_time(ts)
+	ns := t.UnixNano()
+
+	return int64(ns / 1_000_000)
+}
+
+func time_to_ms_str(ts string) string {
+	ms := time_to_ms(ts)
+
+	return strconv.Itoa(int(ms))
 }
 
 func order_book(m string) (result string) {
@@ -195,9 +306,9 @@ func order_book(m string) (result string) {
 
 	switch message.Type {
 	case "snapshot":
-		return order_book_snap(message.Data, message.Time)
+		return order_book_snap(message.Data, int64(message.Time/1000))
 	case "delta":
-		return order_book_delta(message.Data, message.Time)
+		return order_book_delta(message.Data, int64(message.Time/1000))
 	}
 
 	log.Fatalln("Unknown Message type", message.Type)
@@ -230,6 +341,7 @@ func order_book_snap(message json.RawMessage, time int64) (result string) {
 
 func order_book_delta(message json.RawMessage, time int64) (result string) {
 	var data Delta
+	result = ""
 
 	err := json.Unmarshal(message, &data)
 	if err != nil {
@@ -260,6 +372,8 @@ func order_book_delta(message json.RawMessage, time int64) (result string) {
 func trade(message json.RawMessage) (result string) {
 	var data TradeRecs
 
+	result = ""
+
 	err := json.Unmarshal(message, &data)
 	if err != nil {
 		log.Fatalln("Fail to pase message", err, message)
@@ -274,21 +388,65 @@ func trade(message json.RawMessage) (result string) {
 	return result
 }
 
+var (
+	instrument_data Instrument
+)
+
 func instrument_snapshot(message json.RawMessage, time int64) (result string) {
-	var data Instrument
+	result = ""
+
+	err := json.Unmarshal(message, &instrument_data)
+	if err != nil {
+		log.Fatalln("Fail to pase message", err, message)
+	}
+
+	instrument_data.Time = time
+	result += instrument_data.ToLog()
+
+	return result
+}
+
+func instrument_delta(message json.RawMessage, time int64) (result string) {
+	var data InstrumentDelta
 
 	err := json.Unmarshal(message, &data)
 	if err != nil {
 		log.Fatalln("Fail to pase message", err, message)
 	}
 
-	data.Time = time
-	result += data.ToLog()
+	result = ""
+
+	for i, _ := range data.Update {
+		instrument_data.update(data.Update[i])
+
+		data.Update[i].Time = time
+		result += data.Update[i].ToLog()
+	}
+
+	// Assume Delete and Insert message is not implemented
+	for i, _ := range data.Delete {
+		data.Delete[i].Time = time
+		log.Println("INFO delete ", data.Delete[i])
+
+		result += data.Delete[i].ToLog()
+	}
+
+	for i, _ := range data.Insert {
+		log.Println("INFO Insert", data.Insert[i])
+		data.Insert[i].Time = time
+		result += data.Insert[i].ToLog()
+	}
 
 	return result
 }
 
-func Connect() {
+func Connect(flag_file_name string, w io.WriteCloser) {
+	var flag_file FlagFile
+	flag_file.Init(flag_file_name)
+	flag_file.Create()
+	peer_reset := make(chan struct{})
+	go flag_file.Check_other_process_loop(90, peer_reset)
+
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
@@ -305,6 +463,10 @@ func Connect() {
 
 	done := make(chan struct{})
 
+	write := func(s string) {
+		w.Write([]byte(s))
+	}
+
 	go func() {
 		defer close(done)
 		for {
@@ -319,25 +481,28 @@ func Connect() {
 				log.Println("Parse error", err)
 				return
 			}
-			// fmt.Println(decoded.Time, decoded.Sequence, decoded.Topic, decoded.Type, decoded.Sequence)
 
 			switch decoded.Topic {
 			case CHANNEL_ORDER_BOOK_200:
 				s := order_book(string(message))
-				fmt.Println(s)
+				write(s)
 			case CHANNEL_TRADE:
 				s := trade(decoded.Data)
-				fmt.Println(s)
+				write(s)
 			case CHANNEL_INFO:
-				fmt.Println("INFO", string(message))
-			case "":
-				var response Response
-				json.Unmarshal([]byte(message), &response)
-				fmt.Println(response.Success, response.Id, response.Message, response.Request.Args)
-			}
+				s := ""
 
-			if decoded.Time == 0 {
-				fmt.Println(string(message))
+				if decoded.Type == "snapshot" {
+					s = instrument_snapshot(decoded.Data, decoded.Time)
+				} else if decoded.Type == "delta" {
+					s = instrument_delta(decoded.Data, decoded.Time)
+				} else {
+					log.Println("unknown instrument info type", string(message))
+				}
+				write(s)
+
+			default:
+				log.Println("[OTHER CHANNEL]", string(message))
 			}
 		}
 	}()
@@ -359,14 +524,24 @@ func Connect() {
 		select {
 		case <-done:
 			return
-		/*
-			case t := <-ticker.C:
-				err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
-				if err != nil {
-					log.Println("write:", err)
-					return
-				}
-		*/
+			/*
+				case t := <-ticker.C:
+					err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
+					if err != nil {
+						log.Println("write:", err)
+						return
+					}
+			*/
+
+		case <-peer_reset:
+			log.Println("Peer reset")
+			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			if err != nil {
+				log.Println("write close:", err)
+				return
+			}
+			return
+
 		case <-interrupt:
 			log.Println("interrupt")
 

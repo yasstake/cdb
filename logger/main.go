@@ -10,5 +10,6 @@ func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
-	bb.Connect()
+	writer := bb.Create_writer("/tmp/BB")
+	bb.Connect("/tmp/PROCESSSA", writer)
 }
