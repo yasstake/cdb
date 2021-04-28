@@ -34,6 +34,18 @@ func TestParseIosTime(t *testing.T) {
 	fmt.Println(time)
 }
 
+func TestParseTimeToMs(t *testing.T) {
+	ms := time_to_ms("2021-04-26T16:00:00Z")
+
+	fmt.Println(ms)
+}
+
+func TestParseTimeTomSS(t *testing.T) {
+	ts := time_to_ms_str("2021-04-26T16:00:00Z")
+
+	fmt.Println(ts)
+}
+
 func TestOrderBook(t *testing.T) {
 	result := order_book(ORDER_BOOK_SNAP_RECORD)
 	fmt.Println(result)
