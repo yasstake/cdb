@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// Find files in recusively
 func file_list(base_path string) []string {
 	files, err := ioutil.ReadDir(base_path)
 
@@ -29,11 +30,13 @@ func file_list(base_path string) []string {
 	return sort.StringSlice(paths)
 }
 
+// represent start, end time frame
 type TimeFrame struct {
 	start time.Time
 	end   time.Time
 }
 
+// Conver to string for visual representation
 func (c TimeFrame) to_string() string {
 	return c.start.String() + "->" + c.end.String()
 }
@@ -63,6 +66,7 @@ func Time_chunks(base_path string) (times TimeFrames) {
 		fmt.Println("Error")
 	}
 
+	// Open YYYY
 	var dirs []string
 	for _, file := range files {
 		if file.IsDir() {
@@ -72,6 +76,7 @@ func Time_chunks(base_path string) (times TimeFrames) {
 	dirs = sort.StringSlice(dirs)
 
 	// Open each log dir and sort each logs
+	// Open MM
 	for _, dir_path := range dirs {
 		var file_paths []string
 
@@ -80,6 +85,7 @@ func Time_chunks(base_path string) (times TimeFrames) {
 			fmt.Println("Error")
 		}
 
+		// Open DD
 		for _, file := range files {
 			name := file.Name()
 			file_paths = append(file_paths, filepath.Join(dir_path, name))
@@ -96,6 +102,7 @@ func Time_chunks(base_path string) (times TimeFrames) {
 	return times
 }
 
+// MAX of time duration alloance for time skip(losting data period)
 const TIME_GAP = 60 + 5
 
 // Append time chunks. Add new time to old TimeFrame

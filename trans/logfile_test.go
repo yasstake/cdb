@@ -206,23 +206,23 @@ func TestBoardLoad(t *testing.T) {
 
 	// if out of chunk err(before)
 	book_time := date_time(int64(time - 5*SEC_IN_NS))
-	bit, ask, err := c.order_book(book_time)
-	if !err {
+	bit, ask, err := c.GetOrderBook(book_time)
+	if err != nil {
 		t.Error("must be null", bit, ask, err)
 	}
 
 	book_time = date_time(int64(time + 61*SEC_IN_NS))
-	bit, ask, err = c.order_book(book_time)
-	if !err {
+	bit, ask, err = c.GetOrderBook(book_time)
+	if err != nil {
 		t.Error("must be null", bit, ask, err)
 	}
 
 	book_time = date_time(int64(time + 5*SEC_IN_NS))
-	bit, ask, err = c.order_book(book_time)
+	bit, ask, err = c.GetOrderBook(book_time)
 	fmt.Println(bit, ask, err)
 
 	book_time = date_time(int64(time + 10*SEC_IN_NS))
-	bit, ask, err = c.order_book(book_time)
+	bit, ask, err = c.GetOrderBook(book_time)
 	fmt.Println(bit, ask, err)
 }
 
@@ -261,4 +261,14 @@ func TestInitTransactions(t *testing.T) {
 
 	trans.init()
 	fmt.Println(trans)
+}
+
+func TestOrderBookSort(t *testing.T) {
+	fmt.Println(bd)
+
+	order := bd.Sort(true)
+	fmt.Println(order)
+
+	order = bd.Sort(false)
+	fmt.Println(order)
 }

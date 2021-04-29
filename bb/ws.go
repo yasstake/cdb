@@ -471,14 +471,15 @@ func Connect(flag_file_name string, w io.WriteCloser) {
 		for {
 			_, message, err := c.ReadMessage()
 			if err != nil {
-				log.Println("read:", err)
+				log.Println("[ERROR] ReadMessaeg:", err)
+				close(interrupt)
 				return
 			}
 			var decoded Message
 			err = json.Unmarshal([]byte(message), &decoded)
 			if err != nil {
 				log.Println("Parse error", err)
-				return
+				continue
 			}
 
 			switch decoded.Topic {

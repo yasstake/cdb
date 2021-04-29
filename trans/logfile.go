@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -101,15 +102,31 @@ func file_to_time(file_path string) time.Time {
 	re := regexp.MustCompile(`(\d{4})-(\d{2})-(\d{2})/(\d{2})-(\d{2}).log.gz$`)
 	res := re.FindStringSubmatch(file_path)
 
-	yy, _ := strconv.Atoi(res[1])
-	mm, _ := strconv.Atoi(res[2])
-	dd, _ := strconv.Atoi(res[3])
-	h, _ := strconv.Atoi(res[4])
-	m, _ := strconv.Atoi(res[5])
+	yy, err := strconv.Atoi(res[1])
+	if err != nil {
+		log.Println("[ERROR] Wrong time format", file_path)
+	}
+	mm, err := strconv.Atoi(res[2])
+	if err != nil {
+		log.Println("[ERROR] Wrong time format", file_path)
+	}
+	dd, err := strconv.Atoi(res[3])
+	if err != nil {
+		log.Println("[ERROR] Wrong time format", file_path)
+	}
+	h, err := strconv.Atoi(res[4])
+	if err != nil {
+		log.Println("[ERROR] Wrong time format", file_path)
+	}
+	m, err := strconv.Atoi(res[5])
+	if err != nil {
+		log.Println("[ERROR] Wrong time format", file_path)
+	}
 
 	return time.Date(yy, time.Month(mm), dd, h, m, 0, 0, time.UTC)
 }
 
+// Store each transaction data from Bybit Exchange
 type Transaction struct {
 	Action     int8
 	Time_stamp int64
@@ -137,6 +154,7 @@ func (t *Transaction) load(stream io.ReadCloser) Transaction {
 	return *t
 }
 
+// Array of transaction
 type Transactions []Transaction
 
 func (t *Transactions) init() {
@@ -165,6 +183,7 @@ func (t *Transactions) load(stream io.ReadCloser) Transactions {
 	return *t
 }
 
+// Store order book
 type Board map[int]int
 
 func (c *Board) init() {
@@ -224,8 +243,44 @@ func (board *Board) load(stream io.ReadCloser) Board {
 	return *board
 }
 
-func (board Board) depth() int {
-	return len(board)
+func (board *Board) depth() int {
+	return len(*board)
+}
+
+type Order []struct {
+	Price  int
+	Volume int
+}
+
+func (c Order) Len() int {
+	return len(c)
+}
+
+func (c Order) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+func (c Order) Less(i, j int) bool {
+	return c[i].Price < c[j].Price
+}
+
+func (board *Board) Sort(asc bool) (orders Order) {
+	orders = make(Order, len(*board))
+
+	i := 0
+	for price, volume := range *board {
+		orders[i].Price = price
+		orders[i].Volume = volume
+		i++
+	}
+
+	if asc {
+		sort.Slice(orders, func(i, j int) bool { return orders[i].Price < orders[j].Price })
+	} else {
+		sort.Slice(orders, func(i, j int) bool { return orders[i].Price > orders[j].Price })
+	}
+
+	return orders
 }
 
 type Chunk struct {
@@ -255,6 +310,16 @@ func (c Chunk) info_string() string {
 			" Trans->" + strconv.Itoa(trans_len)
 
 	return result
+}
+
+func (c *Chunk) start_time() time.Time {
+	return date_time(c.trans[0].Time_stamp)
+}
+
+func (c *Chunk) end_time() time.Time {
+	i := len(c.trans) - 1
+
+	return date_time(c.trans[i].Time_stamp)
 }
 
 func (c *Chunk) init() {
@@ -379,7 +444,7 @@ func (c *Ohlcv) sell_buy(time int64, price int, volume int, buy bool) {
 	}
 }
 
-func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, err bool) {
+func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, err error) {
 	result.init()
 
 	for i := range c.trans {
@@ -404,10 +469,11 @@ func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, err bool) {
 	}
 
 	if result.open == 0 {
-		err = true
+		err = fmt.Errorf("no data in time frame　%s %s", from, end)
+		return result, err
 	}
 
-	return result, err
+	return result, nil
 }
 
 func (c *Chunk) ohlcvSec() (result []Ohlcv) {
@@ -442,7 +508,9 @@ func (c *Chunk) ohlcvSec() (result []Ohlcv) {
 	return result
 }
 
-func (c *Chunk) order_book(time time.Time) (bit, ask Board, err bool) {
+// Apply update transaction data until the time and return bords.
+// TODO: cache result for performance improbement
+func (c *Chunk) GetOrderBook(time time.Time) (bit, ask Board, err error) {
 	bit = nil
 	ask = nil
 
@@ -451,13 +519,13 @@ func (c *Chunk) order_book(time time.Time) (bit, ask Board, err bool) {
 
 	// if chunk does not have data
 	if trans_len == 0 {
-		return nil, nil, true
+		return nil, nil, fmt.Errorf("chunk have not data %s", time)
 	}
 
 	// check out of chunk time frame(with 100ms allowance)
 	if t < c.trans[0].Time_stamp-SEC_IN_NS/10 ||
 		c.trans[trans_len-1].Time_stamp+SEC_IN_NS/10 < t {
-		return nil, nil, true
+		return nil, nil, fmt.Errorf("select outside of chunk timeframe, %s", time)
 	}
 
 	// first setup initial
@@ -488,7 +556,7 @@ func (c *Chunk) order_book(time time.Time) (bit, ask Board, err bool) {
 		}
 	}
 
-	return bit, ask, true
+	return bit, ask, nil
 }
 
 func (c *Chunk) open_interest(time time.Time) (oi int, err bool) {
