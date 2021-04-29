@@ -36,6 +36,21 @@ type TimeFrame struct {
 	end   time.Time
 }
 
+// Check whether time is in TimeFrame
+//   return true when  start < time < end
+// TODO: start time must be included
+func (c *TimeFrame) In(time time.Time) bool {
+	if time.Before(c.start) {
+		return false
+	}
+
+	if time.Before(c.end) {
+		return true
+	}
+
+	return false
+}
+
 // Conver to string for visual representation
 func (c TimeFrame) to_string() string {
 	return c.start.String() + "->" + c.end.String()
@@ -43,6 +58,19 @@ func (c TimeFrame) to_string() string {
 
 type TimeFrames []TimeFrame
 
+// Check whether time is in TimeFrames
+func (c TimeFrames) In(time time.Time) bool {
+	frames := len(c)
+
+	for i := 0; i < frames; i++ {
+		if c[i].In(time) {
+			return true
+		}
+	}
+	return false
+}
+
+// Convert to string  for visual representation
 func (c TimeFrames) ToString() string {
 	frames := len(c)
 	result := ""

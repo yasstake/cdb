@@ -35,6 +35,12 @@ func TestGetBoard(t *testing.T) {
 	fmt.Println(err)
 	fmt.Println(bit.Sort(false))
 	fmt.Println(ask.Sort(true))
+
+	bit, ask, err = database.chunk.GetOrderBook(database.chunk.start_time().Add(time.Second * 10))
+
+	fmt.Println(err)
+	fmt.Println(bit.Sort(false))
+	fmt.Println(ask.Sort(true))
 }
 
 func BenchmarkGetBoard(b *testing.B) {
