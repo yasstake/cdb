@@ -1,6 +1,10 @@
 package trans
 
-import "time"
+import (
+	"fmt"
+	"log"
+	"time"
+)
 
 type Db struct {
 	base_path   string
@@ -19,15 +23,23 @@ func (c *Db) Open(path string) {
 }
 
 // Return chunk which contains time.
-func (c *Db) LoadTime(t time.Time) Chunk {
+func (c *Db) LoadTime(t time.Time) (Chunk, error) {
 	if c.current_start.Before(t) && t.Before(c.current_end) {
-		return c.chunk
-	} else {
-		c.chunk.load_time(t)
-		c.current_start = c.chunk.start_time()
-		c.current_end = c.chunk.end_time()
+		// retrun cached info
+		return c.chunk, nil
 	}
-	return c.chunk
+	err := c.chunk.load_time(t)
+
+	if err != nil {
+		// load failed unchanged.
+		log.Println("DB chunk file is not found time=", t)
+		return c.chunk, err
+	}
+
+	c.current_start = c.chunk.start_time()
+	c.current_end = c.chunk.end_time()
+
+	return c.chunk, nil
 }
 
 /*
@@ -42,10 +54,46 @@ func (c *Db) GetBoard(t time.Time) (bit Board, ask Board) {
 }
 */
 
-func (c *Db) SelectTrans(s time.Time, e time.Time) {
+// Retrive order book board information from logdb
+func (c *Db) GetBoard(t time.Time) (bit Board, ask Board, err error) {
+	if !c.time_chunks.In(t) {
+		return nil, nil, fmt.Errorf("out of range time=%s in[%s %s]", t, c.chunk.start_time(), c.chunk.end_time())
+	}
+	chunk, err := c.LoadTime(t)
+	if err != nil {
+		return nil, nil, err
+	}
 
+	bit, ask, err = chunk.GetOrderBook(t)
+
+	return bit, ask, err
 }
 
-func (c *Db) SelectOhlcv(s time.Time, e time.Time) {
+func (c *Db) check_boud(s time.Time, e time.Time) {
+	if !c.time_chunks.In(s) {
+		log.Println("[WARN] out bound in select trans before")
+	}
+	if !c.time_chunks.In(e) {
+		log.Println("[WARN] out bound in select trans end")
+	}
+	// TODO: not implemented
+}
 
+func (c *Db) SelectTrans(s time.Time, e time.Time) error {
+	c.check_boud(s, e)
+	// TODO: not implemented
+
+	return nil
+}
+
+func (c *Db) SelectOhlcv(s time.Time, e time.Time) error {
+	//c.check_boud(s, e)
+
+	load_time := s
+
+	c.LoadTime(load_time)
+	// TODO: not imlemented
+	// ohlcv, _ := c.chunk.ohlcv(s, e)
+
+	return nil
 }

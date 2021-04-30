@@ -284,7 +284,7 @@ func (board *Board) Sort(asc bool) (orders Order) {
 }
 
 type Chunk struct {
-	bit_board Board
+	bid_board Board
 	ask_board Board
 	trans     Transactions
 
@@ -295,7 +295,7 @@ type Chunk struct {
 }
 
 func (c Chunk) info_string() string {
-	bit_len := len(c.bit_board)
+	bid_len := len(c.bid_board)
 	ask_len := len(c.ask_board)
 	trans_len := len(c.trans)
 
@@ -305,7 +305,7 @@ func (c Chunk) info_string() string {
 	result :=
 		"Start->" + start.info_string() +
 			" End->" + end.info_string() +
-			" BIT->" + strconv.Itoa(bit_len) +
+			" BID->" + strconv.Itoa(bid_len) +
 			" ASK->" + strconv.Itoa(ask_len) +
 			" Trans->" + strconv.Itoa(trans_len)
 
@@ -323,7 +323,7 @@ func (c *Chunk) end_time() time.Time {
 }
 
 func (c *Chunk) init() {
-	c.bit_board.init()
+	c.bid_board.init()
 	c.ask_board.init()
 	c.trans.init()
 }
@@ -337,29 +337,33 @@ func (c *Chunk) dump() {
 	stream := create_db_file(time)
 	defer stream.Close()
 
-	c.bit_board.save(stream)
+	c.bid_board.save(stream)
 	c.ask_board.save(stream)
 
 	c.trans.save(stream)
 }
 
-func (c *Chunk) load_file(path string) {
+func (c *Chunk) load_file(path string) error {
 	stream, err := os.Open(path)
 	if err != nil {
-		log.Fatal("cannot open file", path, err)
+		log.Printf("cannot open file%s %s", path, err)
+		return err
 	}
 
 	gzip_reader, _ := gzip.NewReader(stream)
 	defer gzip_reader.Close()
 
-	c.bit_board.load(gzip_reader)
+	c.bid_board.load(gzip_reader)
 	c.ask_board.load(gzip_reader)
 	c.trans.load(gzip_reader)
+
+	return nil
 }
 
-func (c *Chunk) load_time(time time.Time) {
+func (c *Chunk) load_time(time time.Time) error {
 	path := make_full_path(time)
-	c.load_file(path)
+
+	return c.load_file(path)
 }
 
 type Ohlcv struct {
@@ -384,7 +388,13 @@ func (c *Ohlcv) init() {
 	c.vol = 0
 }
 
-func (c *Ohlcv) add(ohlcv Ohlcv) (result Ohlcv) {
+// Merge two ohlcv value and retun merged one
+// when add value is {0, 0, 0, 0, 0} then return original
+func (c Ohlcv) add(ohlcv Ohlcv) (result Ohlcv) {
+	if ohlcv.open == 0 && ohlcv.close == 0 {
+		return c
+	}
+
 	result.time = ohlcv.time
 	result.open = c.open
 
@@ -444,7 +454,9 @@ func (c *Ohlcv) sell_buy(time int64, price int, volume int, buy bool) {
 	}
 }
 
-func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, err error) {
+// Calculate OHLCV in chunk within time.
+//  returns OHLCV and raw record within transaction
+func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, num_record int) {
 	result.init()
 
 	for i := range c.trans {
@@ -462,18 +474,19 @@ func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, err error) {
 		action := c.trans[i].Action
 
 		if action == TRADE_BUY || action == TRADE_BUY_LIQUID {
+			num_record += 1
 			result.buy(c.trans[i].Time_stamp, int(c.trans[i].Price), int(c.trans[i].Volume))
 		} else if action == TRADE_SELL || action == TRADE_SELL_LIQUID {
+			num_record += 1
 			result.sell(c.trans[i].Time_stamp, int(c.trans[i].Price), int(c.trans[i].Volume))
 		}
 	}
 
-	if result.open == 0 {
-		err = fmt.Errorf("no data in time frame　%s %s", from, end)
-		return result, err
+	if num_record == 0 {
+		log.Printf("no data in time frame　%s %s", from, end)
 	}
 
-	return result, nil
+	return result, num_record
 }
 
 func (c *Chunk) ohlcvSec() (result []Ohlcv) {
@@ -510,8 +523,8 @@ func (c *Chunk) ohlcvSec() (result []Ohlcv) {
 
 // Apply update transaction data until the time and return bords.
 // TODO: cache result for performance improbement
-func (c *Chunk) GetOrderBook(time time.Time) (bit, ask Board, err error) {
-	bit = nil
+func (c *Chunk) GetOrderBook(time time.Time) (bid, ask Board, err error) {
+	bid = nil
 	ask = nil
 
 	trans_len := len(c.trans)
@@ -529,7 +542,7 @@ func (c *Chunk) GetOrderBook(time time.Time) (bit, ask Board, err error) {
 	}
 
 	// first setup initial
-	bit = c.bit_board.copy()
+	bid = c.bid_board.copy()
 	ask = c.ask_board.copy()
 
 	// apply transactions until time
@@ -548,7 +561,7 @@ func (c *Chunk) GetOrderBook(time time.Time) (bit, ask Board, err error) {
 		if action == UPDATE_BUY {
 			price := int(c.trans[i].Price)
 			volume := int(c.trans[i].Volume)
-			bit.set(price, volume)
+			bid.set(price, volume)
 		} else if action == UPDATE_SELL {
 			price := int(c.trans[i].Price)
 			volume := int(c.trans[i].Volume)
@@ -556,7 +569,7 @@ func (c *Chunk) GetOrderBook(time time.Time) (bit, ask Board, err error) {
 		}
 	}
 
-	return bit, ask, nil
+	return bid, ask, nil
 }
 
 func (c *Chunk) open_interest(time time.Time) (oi int, err bool) {
@@ -614,8 +627,8 @@ func Load_log(file string) (chunk Chunk) {
 
 	last_min := int(-1)
 
-	var bit_board Board
-	bit_board.init()
+	var bid_board Board
+	bid_board.init()
 	var ask_board Board
 	ask_board.init()
 
@@ -655,7 +668,7 @@ func Load_log(file string) (chunk Chunk) {
 		}
 
 		if record.Action == PARTIAL {
-			bit_board.init()
+			bid_board.init()
 			ask_board.init()
 		} else if record.Action == UPDATE_BUY || record.Action == UPDATE_SELL {
 			time := date_time(record.Time_stamp)
@@ -676,13 +689,13 @@ func Load_log(file string) (chunk Chunk) {
 					}
 				}
 
-				chunk.bit_board = bit_board.copy() // CopyBuffer
+				chunk.bid_board = bid_board.copy() // CopyBuffer
 				chunk.ask_board = ask_board.copy()
 				chunk.trans.init()
 			}
 
 			if record.Action == UPDATE_BUY {
-				bit_board.set(int(record.Price), int(record.Volume))
+				bid_board.set(int(record.Price), int(record.Volume))
 			} else if record.Action == UPDATE_SELL {
 				ask_board.set(int(record.Price), int(record.Volume))
 			} else {
@@ -698,9 +711,12 @@ func Load_log(file string) (chunk Chunk) {
 		}
 		*/
 
-		if len(chunk.trans) == 0 {
+		/*
+			if len(chunk.trans) == 0 {
 
-		}
+			}
+		*/
+
 		chunk.append(record)
 	}
 

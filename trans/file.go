@@ -37,8 +37,7 @@ type TimeFrame struct {
 }
 
 // Check whether time is in TimeFrame
-//   return true when  start < time < end
-// TODO: start time must be included
+//   return true when  start <= time < end
 func (c *TimeFrame) In(time time.Time) bool {
 	if time.Before(c.start) {
 		return false
@@ -68,6 +67,27 @@ func (c TimeFrames) In(time time.Time) bool {
 		}
 	}
 	return false
+}
+
+// return true if  timeframe < time
+func (c TimeFrames) Before(time time.Time) bool {
+	if len(c) == 0 {
+		log.Println("No time frames")
+		return false
+	}
+
+	return c[0].start.Before(time)
+}
+
+// return true if time < timeframe
+func (c TimeFrames) After(time time.Time) bool {
+	l := len(c)
+	if l == 0 {
+		log.Println("No time frames")
+		return false
+	}
+
+	return c[l-1].start.After(time)
 }
 
 // Convert to string  for visual representation
