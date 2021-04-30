@@ -55,7 +55,7 @@ func (c *Db) GetBoard(t time.Time) (bit Board, ask Board) {
 */
 
 // Retrive order book board information from logdb
-func (c *Db) GetBoard(t time.Time) (bit Board, ask Board, err error) {
+func (c *Db) GetBoard(t time.Time) (bid Board, ask Board, err error) {
 	if !c.time_chunks.In(t) {
 		return nil, nil, fmt.Errorf("out of range time=%s in[%s %s]", t, c.chunk.start_time(), c.chunk.end_time())
 	}
@@ -64,9 +64,9 @@ func (c *Db) GetBoard(t time.Time) (bit Board, ask Board, err error) {
 		return nil, nil, err
 	}
 
-	bit, ask, err = chunk.GetOrderBook(t)
+	bid, ask, err = chunk.GetOrderBook(t)
 
-	return bit, ask, err
+	return bid, ask, err
 }
 
 func (c *Db) check_boud(s time.Time, e time.Time) {

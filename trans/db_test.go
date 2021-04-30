@@ -30,16 +30,16 @@ func TestDbOpen(t *testing.T) {
 func TestGetBoard(t *testing.T) {
 	Open()
 
-	bit, ask, err := database.chunk.GetOrderBook(database.chunk.start_time())
+	bid, ask, err := database.chunk.GetOrderBook(database.chunk.start_time())
 
 	fmt.Println(err)
-	fmt.Println(bit.Sort(false))
+	fmt.Println(bid.Sort(false))
 	fmt.Println(ask.Sort(true))
 
-	bit, ask, err = database.chunk.GetOrderBook(database.chunk.start_time().Add(time.Second * 10))
+	bid, ask, err = database.chunk.GetOrderBook(database.chunk.start_time().Add(time.Second * 10))
 
 	fmt.Println(err)
-	fmt.Println(bit.Sort(false))
+	fmt.Println(bid.Sort(false))
 	fmt.Println(ask.Sort(true))
 }
 
