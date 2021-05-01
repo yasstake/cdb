@@ -18,7 +18,7 @@ func make_file_name(base string) (dir string, file string) {
 	dd := fmt.Sprintf("%02d", time.Day())
 
 	dir = filepath.Join(base, yyyy, mm, dd)
-	file = time.Format("2006-01-02-15-04-05") + ".log.gz"
+	file = time.Format("2006-01-02T15-04-05") + ".log.gz"
 
 	return dir, file
 }

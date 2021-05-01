@@ -12,7 +12,7 @@ bench:
 	go test -bench ./ -benchmem
 
 test:
-	go test ./trans/*_test.go
+	go test ./trans/*_test.go 
 
 clean:
 	rm -rf ./bin
@@ -26,4 +26,5 @@ ws:
 
 
 run-ws: 
-	go run ./logger/main.go
+	go run ./logger/main.go -log_dir /tmp/BB -flag_file /tmp/PROCESSA
+
