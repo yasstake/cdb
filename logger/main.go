@@ -3,6 +3,7 @@ package main
 import (
 	"cdb/bb"
 	"flag"
+	"log"
 )
 
 func main() {
@@ -11,6 +12,10 @@ func main() {
 	var exit_wait = flag.Int("exit_wait", 0, "Exit wait minute, when terminated by peer process")
 
 	flag.Parse()
+
+	log.Printf("[LOG DIR]   %s", *log_dir)
+	log.Printf("[FLAG FILE] %s", *flag_file)
+	log.Printf("[EXIT WAIT] %d", *exit_wait)
 
 	writer := bb.Create_writer(*log_dir)
 	bb.Connect(*flag_file, writer, *exit_wait)
