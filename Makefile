@@ -4,6 +4,7 @@
 build:
 	-mkdir bin
 	go build -o ./bin/load ./loader/main.go
+	go build -o ./bin/logger ./logger/main.go	
 
 run:
 	go run ./loader/main.go  
