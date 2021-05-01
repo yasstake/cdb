@@ -27,5 +27,6 @@ ws:
 
 
 run-ws: 
-	go run ./logger/main.go -log_dir /tmp/BB -flag_file /tmp/PROCESSA
+	go run ./logger/main.go -log_dir /tmp/BB -flag_file /tmp/PROCESSA -exit_wait 1
+
 

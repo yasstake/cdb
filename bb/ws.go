@@ -440,14 +440,15 @@ func instrument_delta(message json.RawMessage, time int64) (result string) {
 	return result
 }
 
-func Connect(flag_file_name string, w io.WriteCloser) {
-	defer w.Close()
+func Connect(flag_file_name string, w io.WriteCloser, close_wait_min int) {
 
 	var flag_file FlagFile
 	flag_file.Init(flag_file_name)
 	flag_file.Create()
 	peer_reset := make(chan struct{})
-	go flag_file.Check_other_process_loop(90, peer_reset)
+
+	// wait 100 sec to terminate
+	go flag_file.Check_other_process_loop(100, peer_reset)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
@@ -468,6 +469,11 @@ func Connect(flag_file_name string, w io.WriteCloser) {
 	}
 
 	go func() {
+		var message_count int
+		var board_update_count int
+		var trade_count int
+		var info_count int
+
 		for {
 			_, message, err := c.ReadMessage()
 			if err != nil {
@@ -478,18 +484,28 @@ func Connect(flag_file_name string, w io.WriteCloser) {
 			var decoded Message
 			err = json.Unmarshal([]byte(message), &decoded)
 			if err != nil {
+				// skip message
 				log.Println("Parse error", err)
 				continue
 			}
 
+			if message_count%1000 == 0 {
+				log.Printf("%d total / %d board update/ %d trade/ %d info",
+					message_count, board_update_count, trade_count, info_count)
+			}
+			message_count += 1
+
 			switch decoded.Topic {
 			case CHANNEL_ORDER_BOOK_200:
+				board_update_count += 1
 				s := order_book(string(message))
 				write(s)
 			case CHANNEL_TRADE:
+				trade_count += 1
 				s := trade(decoded.Data)
 				write(s)
 			case CHANNEL_INFO:
+				info_count += 1
 				s := ""
 
 				if decoded.Type == "snapshot" {
@@ -527,9 +543,9 @@ func Connect(flag_file_name string, w io.WriteCloser) {
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Println("write close:", err)
-				return
 			}
-			return
+			w.Close()
+			goto close_wait
 
 		case <-interrupt:
 			log.Println("interrupt")
@@ -539,10 +555,23 @@ func Connect(flag_file_name string, w io.WriteCloser) {
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Println("write close:", err)
-
-				return
 			}
-			return
+			w.Close()
+			goto exit
 		}
 	}
+
+close_wait:
+	{
+		log.Println("Peer reset close")
+
+		s := 0
+		for s < close_wait_min {
+			s += 1
+			time.Sleep(time.Minute) // sleep min
+			log.Println("[wait]", s)
+		}
+	}
+exit:
+	log.Println("Logger End")
 }
