@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+/*
 func parse_message(message string) (result Message) {
 	err := json.Unmarshal([]byte(message), &result)
 
@@ -16,6 +17,7 @@ func parse_message(message string) (result Message) {
 
 	return result
 }
+*/
 
 func get_data(m string) json.RawMessage {
 	var message Message

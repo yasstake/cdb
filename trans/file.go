@@ -79,7 +79,7 @@ func (c TimeFrames) Before(time time.Time) bool {
 	return c[0].start.Before(time)
 }
 
-// return true if time < timeframe
+// return true if  timeframe  > time
 func (c TimeFrames) After(time time.Time) bool {
 	l := len(c)
 	if l == 0 {

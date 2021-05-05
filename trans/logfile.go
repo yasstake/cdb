@@ -58,7 +58,8 @@ func SetDbRoot(path string) {
 
 const SEC_IN_NS = 1_000_000_000 // ns = sec
 
-func date_time(nsec int64) time.Time {
+// Convert unix time(in ns) to Time object
+func DateTime(nsec int64) time.Time {
 	t := time.Unix(0, nsec).UTC()
 	return t
 }
@@ -136,7 +137,7 @@ type Transaction struct {
 }
 
 func (c *Transaction) info_string() (result string) {
-	result += date_time(c.Time_stamp).String()
+	result += DateTime(c.Time_stamp).String()
 	result += "{Action:" + strconv.Itoa(int(c.Action)) + "}"
 	result += "{Price:" + strconv.Itoa(int(c.Price)) + "}"
 	result += "{vol:" + strconv.Itoa(int(c.Volume)) + "}"
@@ -313,13 +314,13 @@ func (c Chunk) info_string() string {
 }
 
 func (c *Chunk) start_time() time.Time {
-	return date_time(c.trans[0].Time_stamp)
+	return DateTime(c.trans[0].Time_stamp)
 }
 
 func (c *Chunk) end_time() time.Time {
 	i := len(c.trans) - 1
 
-	return date_time(c.trans[i].Time_stamp)
+	return DateTime(c.trans[i].Time_stamp)
 }
 
 func (c *Chunk) init() {
@@ -333,7 +334,7 @@ func (c *Chunk) append(r Transaction) {
 }
 
 func (c *Chunk) dump() {
-	time := date_time(c.trans[0].Time_stamp)
+	time := DateTime(c.trans[0].Time_stamp)
 	stream := create_db_file(time)
 	defer stream.Close()
 
@@ -461,7 +462,7 @@ func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, num_record i
 
 	for i := range c.trans {
 
-		time_stamp := date_time(c.trans[i].Time_stamp)
+		time_stamp := DateTime(c.trans[i].Time_stamp)
 
 		if time_stamp.Before(from) {
 			continue
@@ -671,7 +672,7 @@ func Load_log(file string) (chunk Chunk) {
 			bid_board.init()
 			ask_board.init()
 		} else if record.Action == UPDATE_BUY || record.Action == UPDATE_SELL {
-			time := date_time(record.Time_stamp)
+			time := DateTime(record.Time_stamp)
 			min := time.Minute()
 			sec := time.Second()
 

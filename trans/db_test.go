@@ -27,6 +27,24 @@ func TestDbOpen(t *testing.T) {
 	fmt.Println(db.chunk.ohlcvSec())
 }
 
+func TestCheckBound(t *testing.T) {
+	t1 := DateTime(time.Hour.Nanoseconds())
+	t2 := DateTime(time.Hour.Nanoseconds() * 2)
+
+	t3 := DateTime(time.Hour.Nanoseconds() * 4)
+	// t4 := date_time(time.Hour.Nanoseconds()*4 + 1)
+	t5 := DateTime(time.Hour.Nanoseconds() * 5)
+
+	frame1 := TimeFrame{t1, t2}
+	frame2 := TimeFrame{t3, t5}
+
+	frame := TimeFrames{frame1, frame2}
+
+	bs, be, err := check_bounds(frame, t1, t2)
+
+	fmt.Println(bs, be, err)
+}
+
 func TestGetBoard(t *testing.T) {
 	Open()
 

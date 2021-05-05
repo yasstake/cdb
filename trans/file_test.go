@@ -12,12 +12,12 @@ func TestFileList(t *testing.T) {
 }
 
 func TestInTimeFrame(t *testing.T) {
-	t1 := date_time(time.Hour.Nanoseconds())
-	t2 := date_time(time.Hour.Nanoseconds() * 2)
+	t1 := DateTime(time.Hour.Nanoseconds())
+	t2 := DateTime(time.Hour.Nanoseconds() * 2)
 
-	t3 := date_time(time.Hour.Nanoseconds() * 3)
-	t4 := date_time(time.Hour.Nanoseconds()*3 + 1)
-	t5 := date_time(time.Hour.Nanoseconds() * 4)
+	t3 := DateTime(time.Hour.Nanoseconds() * 3)
+	t4 := DateTime(time.Hour.Nanoseconds()*3 + 1)
+	t5 := DateTime(time.Hour.Nanoseconds() * 4)
 
 	frame1 := TimeFrame{t1, t2}
 	frame2 := TimeFrame{t3, t5}
@@ -40,12 +40,12 @@ func TestInTimeFrame(t *testing.T) {
 }
 
 func TestInTimeFrames(t *testing.T) {
-	t1 := date_time(time.Hour.Nanoseconds())
-	t2 := date_time(time.Hour.Nanoseconds() * 2)
+	t1 := DateTime(time.Hour.Nanoseconds())
+	t2 := DateTime(time.Hour.Nanoseconds() * 2)
 
-	t3 := date_time(time.Hour.Nanoseconds() * 4)
-	t4 := date_time(time.Hour.Nanoseconds()*4 + 1)
-	t5 := date_time(time.Hour.Nanoseconds() * 5)
+	t3 := DateTime(time.Hour.Nanoseconds() * 4)
+	t4 := DateTime(time.Hour.Nanoseconds()*4 + 1)
+	t5 := DateTime(time.Hour.Nanoseconds() * 5)
 
 	frame1 := TimeFrame{t1, t2}
 	frame2 := TimeFrame{t3, t5}
@@ -72,12 +72,12 @@ func TestInTimeFrames(t *testing.T) {
 //   t <  Frame.s Frame.e
 
 func TestBefore(t *testing.T) {
-	t1 := date_time(time.Hour.Nanoseconds())
-	t2 := date_time(time.Hour.Nanoseconds() * 2)
+	t1 := DateTime(time.Hour.Nanoseconds())
+	t2 := DateTime(time.Hour.Nanoseconds() * 2)
 
-	t3 := date_time(time.Hour.Nanoseconds() * 4)
+	t3 := DateTime(time.Hour.Nanoseconds() * 4)
 	// t4 := date_time(time.Hour.Nanoseconds()*4 + 1)
-	t5 := date_time(time.Hour.Nanoseconds() * 5)
+	t5 := DateTime(time.Hour.Nanoseconds() * 5)
 
 	frame1 := TimeFrame{t1, t2}
 	frame2 := TimeFrame{t3, t5}

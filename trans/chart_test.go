@@ -28,7 +28,7 @@ func (c *PlotlyOhlc) append(rec Ohlcv) {
 		return
 	}
 
-	time := date_time(rec.time)
+	time := DateTime(rec.time)
 	c.X = append(c.X, fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d",
 		time.Year(), int(time.Month()), time.Day(), time.Hour(), time.Minute(), time.Second()))
 	c.Open = append(c.Open, rec.open)
@@ -58,7 +58,7 @@ func TestDumpPlotly(t *testing.T) {
 
 func TestMakeData(t *testing.T) {
 	var c Chunk
-	s_time := date_time(1613864762187260 * 1000)
+	s_time := DateTime(1613864762187260 * 1000)
 	c.load_time(s_time)
 
 	ohlcvs := c.ohlcvSec()

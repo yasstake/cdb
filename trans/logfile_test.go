@@ -41,21 +41,21 @@ func open_file(path string) (stream io.ReadCloser) {
 }
 
 func TestDateTime(t *testing.T) {
-	time := date_time(1613864752487134000)
+	time := DateTime(1613864752487134000)
 	fmt.Println(time)
-	time = date_time(1613864752587206)
+	time = DateTime(1613864752587206)
 	fmt.Println(time)
 
 }
 
 func TestMakePath(t *testing.T) {
-	time := date_time(1613864752487134000)
+	time := DateTime(1613864752487134000)
 	dir, path := make_path(time)
 	fmt.Println(dir, path)
 }
 
 func TestMakeDBFile(t *testing.T) {
-	time := date_time(1613864752487134000)
+	time := DateTime(1613864752487134000)
 	fw := create_db_file(time)
 	fmt.Println(fw)
 }
@@ -138,7 +138,7 @@ func TestSaveAndLoadBoard(t *testing.T) {
 
 func TestLoadTime(t *testing.T) {
 	var c Chunk
-	time := date_time(1613864762187260 * 1000)
+	time := DateTime(1613864762187260 * 1000)
 	fmt.Println(time.String())
 	c.load_time(time)
 	fmt.Println(c.info_string())
@@ -146,8 +146,8 @@ func TestLoadTime(t *testing.T) {
 
 func TestLoadAndOhlcv(t *testing.T) {
 	var c Chunk
-	s_time := date_time(1613864762187260 * 1000)
-	e_time := date_time(1613864762187260*1000 + 30_000_000_000)
+	s_time := DateTime(1613864762187260 * 1000)
+	e_time := DateTime(1613864762187260*1000 + 30_000_000_000)
 
 	ohlcv, err := c.ohlcv(s_time, e_time)
 	fmt.Println(ohlcv, err)
@@ -159,7 +159,7 @@ func TestLoadAndOhlcv(t *testing.T) {
 
 func TestLoadAndOhlcvSec(t *testing.T) {
 	var c Chunk
-	s_time := date_time(1613864762187260 * 1000)
+	s_time := DateTime(1613864762187260 * 1000)
 	c.load_time(s_time)
 	ohlcvs := c.ohlcvSec()
 	fmt.Println(ohlcvs, len(ohlcvs))
@@ -199,36 +199,36 @@ func TestOhlcv2(t *testing.T) {
 
 func TestBoardLoad(t *testing.T) {
 	time := 1613864762187260 * 1000
-	s_time := date_time(int64(time))
+	s_time := DateTime(int64(time))
 
 	var c Chunk
 	c.load_time(s_time)
 
 	// if out of chunk err(before)
-	book_time := date_time(int64(time - 5*SEC_IN_NS))
+	book_time := DateTime(int64(time - 5*SEC_IN_NS))
 	bit, ask, err := c.GetOrderBook(book_time)
 	if err != nil {
 		t.Error("must be null", bit, ask, err)
 	}
 
-	book_time = date_time(int64(time + 61*SEC_IN_NS))
+	book_time = DateTime(int64(time + 61*SEC_IN_NS))
 	bit, ask, err = c.GetOrderBook(book_time)
 	if err != nil {
 		t.Error("must be null", bit, ask, err)
 	}
 
-	book_time = date_time(int64(time + 5*SEC_IN_NS))
+	book_time = DateTime(int64(time + 5*SEC_IN_NS))
 	bit, ask, err = c.GetOrderBook(book_time)
 	fmt.Println(bit, ask, err)
 
-	book_time = date_time(int64(time + 10*SEC_IN_NS))
+	book_time = DateTime(int64(time + 10*SEC_IN_NS))
 	bit, ask, err = c.GetOrderBook(book_time)
 	fmt.Println(bit, ask, err)
 }
 
 func TestOpenInterest(t *testing.T) {
 	time := 1613864762187260 * 1000
-	s_time := date_time(int64(time + 5*SEC_IN_NS))
+	s_time := DateTime(int64(time + 5*SEC_IN_NS))
 
 	var c Chunk
 	c.load_time(s_time)

@@ -569,7 +569,7 @@ close_wait:
 		for s < close_wait_min {
 			s += 1
 			time.Sleep(time.Minute) // sleep min
-			log.Println("[wait]", s)
+			log.Printf("[wait min] %4d/%d", s, close_wait_min)
 		}
 	}
 exit:

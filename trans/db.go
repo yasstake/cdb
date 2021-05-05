@@ -69,21 +69,73 @@ func (c *Db) GetBoard(t time.Time) (bid Board, ask Board, err error) {
 	return bid, ask, err
 }
 
-func (c *Db) check_boud(s time.Time, e time.Time) {
-	if !c.time_chunks.In(s) {
-		log.Println("[WARN] out bound in select trans before")
+// CASE1:   s < e < chunk(start) < chunk(end)
+// CASE2:   s < chunk(start) < e < chunk(end)
+// CASE3:   chunk(start) < s < e < chunk(end)
+// CASE4:   s < chunk(start) < chunk(end) < e
+// CASE5:   chunk(start) < s < chunk(end) < e
+// CASE6:   chunk(start) < chunk(end) < s < e
+
+const BOUND_BEFORE = -1
+const BOUND_IN = 0
+const BOUND_AFTER = 1
+
+type BoundStatus int
+
+// Check bounds return
+//   CASE1 BOUND_BEFORE 	t   < time_frame
+//   CASE1 BOUND_BEFORE 	t   < time_frame
+//   CASE1 BOUND_BEFORE 	t   < time_frame
+func check_bounds(frames TimeFrames, s time.Time, e time.Time) (bound_s, bound_e BoundStatus, err error) {
+	err = nil
+
+	if frames.Before(s) {
+		bound_s = BOUND_BEFORE
+	} else if frames.In(s) {
+		bound_s = BOUND_IN
+	} else if frames.After(s) {
+		bound_s = BOUND_AFTER
 	}
-	if !c.time_chunks.In(e) {
-		log.Println("[WARN] out bound in select trans end")
+
+	if frames.Before(e) {
+		bound_e = BOUND_BEFORE
+	} else if frames.In(e) {
+		bound_e = BOUND_IN
+	} else if frames.After(e) {
+		bound_e = BOUND_AFTER
 	}
-	// TODO: not implemented
+
+	if e.Before(s) {
+		err = fmt.Errorf("start time %s must be before %s", s, e)
+	}
+
+	return bound_s, bound_e, err
 }
 
-func (c *Db) SelectTrans(s time.Time, e time.Time) error {
-	c.check_boud(s, e)
-	// TODO: not implemented
-
+// TODO: not implemented
+func check_bouds(c *Db, s time.Time, e time.Time) (err error) {
+	bs, be, err := check_bounds(c.time_chunks, s, e)
+	if bs == BOUND_AFTER || be == BOUND_BEFORE || e.Before(s) {
+		err = fmt.Errorf("select time is out of chunk %s, %s", s, e)
+		return err
+	}
 	return nil
+}
+
+// TODO: not implemented
+func (c *Db) SelectTrans(s time.Time, e time.Time) (err error) {
+	bs, be, err := check_bounds(c.time_chunks, s, e)
+	if bs == BOUND_AFTER || be == BOUND_BEFORE || e.Before(s) {
+		err = fmt.Errorf("select time is out of chunk %s, %s", s, e)
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// TODO: not implemneted
+	return err
 }
 
 func (c *Db) SelectOhlcv(s time.Time, e time.Time) error {
