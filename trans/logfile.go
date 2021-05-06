@@ -611,9 +611,11 @@ func (c *Chunk) open_interest(time time.Time) (oi int, err bool) {
 
 func Load_log(file string) (chunk Chunk) {
 	f, err := os.Open(file)
+
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer f.Close()
 
 	compress := strings.HasSuffix(file, ".gz")
 	var r *csv.Reader
@@ -623,6 +625,7 @@ func Load_log(file string) (chunk Chunk) {
 	} else {
 		r = csv.NewReader(f)
 	}
+	r.FieldsPerRecord = -1 // ignore feild number varies
 
 	var record Transaction
 
@@ -641,6 +644,11 @@ func Load_log(file string) (chunk Chunk) {
 	for {
 		row, err := r.Read()
 		if err == io.EOF {
+			fmt.Println("[PROCESS DONE]")
+			break
+		}
+		if err != nil {
+			fmt.Println("[FILE READ ERROR]", err)
 			break
 		}
 		for i, v := range row {
@@ -703,20 +711,6 @@ func Load_log(file string) (chunk Chunk) {
 				log.Fatal("Unknown action")
 			}
 		}
-
-		/* Must buffer latest funding record to chunk
-		else if record.Action == FUNDING_RATE {
-			chunk.funding_rate = record
-		} else if record.Action == PREDICTED_FUNDING_RATE {
-			chunk.funding_rate_predict = record
-		}
-		*/
-
-		/*
-			if len(chunk.trans) == 0 {
-
-			}
-		*/
 
 		chunk.append(record)
 	}

@@ -18,7 +18,7 @@ func (c *FlagFile) Init(file_name string) {
 
 func (c *FlagFile) Create() {
 	if c.Path == "" {
-		log.Println("Logfile is not setup(Create)")
+		log.Println("Flag file is not setup(Create)")
 		return
 	}
 
@@ -35,7 +35,7 @@ func (c *FlagFile) Create() {
 
 func (c *FlagFile) Delete() {
 	if c.Path == "" {
-		log.Println("Logfile is not setup(Delete)")
+		log.Println("Flag file is not setup(Delete)")
 		return
 	}
 

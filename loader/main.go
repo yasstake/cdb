@@ -12,6 +12,10 @@ func main() {
 
 	flag.Parse()
 
+	fmt.Println("Loading logfile to db directory")
+	fmt.Println("[DB dir]", *db_dir)
+	fmt.Println("[load]", *load)
+
 	trans.SetDbRoot(*db_dir)
 
 	if *load {
@@ -24,6 +28,7 @@ func main() {
 
 func load_files(files []string) {
 	for _, file := range files {
+		fmt.Println("[PROCESSING] ", file)
 		trans.Load_log(file)
 	}
 }
