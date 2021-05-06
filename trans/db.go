@@ -15,6 +15,10 @@ type Db struct {
 	chunk         Chunk
 }
 
+func (c *Db) GetTimeChunks() TimeFrames {
+	return c.time_chunks
+}
+
 // Open Data store directory
 func (c *Db) Open(path string) {
 	SetDbRoot(path)
