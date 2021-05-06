@@ -27,6 +27,24 @@ func TestDbOpen(t *testing.T) {
 	fmt.Println(db.chunk.GetOhlcvSec())
 }
 
+func TestDbOpenNext(t *testing.T) {
+	var db Db
+
+	db.Open("/tmp/")
+	fmt.Println(db)
+
+	db.LoadTime(db.time_chunks[0].start)
+	fmt.Println(db.chunk.GetOhlcv(db.current_start, db.current_end))
+
+	for {
+		_, err := db.LoadNext()
+		if err != nil {
+			break
+		}
+		fmt.Println(db.chunk.GetOhlcv(db.current_start, db.current_end))
+	}
+}
+
 func TestCheckBound(t *testing.T) {
 	t1 := DateTime(time.Hour.Nanoseconds())
 	t2 := DateTime(time.Hour.Nanoseconds() * 2)

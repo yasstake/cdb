@@ -329,7 +329,7 @@ func (c *Chunk) init() {
 	c.trans.init()
 }
 
-func (c *Chunk) append(r Transaction) {
+func (c *Chunk) Append(r Transaction) {
 	c.trans = append(c.trans, r)
 }
 
@@ -725,7 +725,7 @@ func Load_log(file string) (chunk Chunk) {
 			}
 		}
 
-		chunk.append(record)
+		chunk.Append(record)
 	}
 
 	return chunk

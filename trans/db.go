@@ -44,7 +44,7 @@ func (c *Db) LoadTime(t time.Time) (Chunk, error) {
 
 // Open and Load next chunk(1 min after)
 func (c *Db) LoadNext() (Chunk, error) {
-	next_time := c.current_start.Add(time.Minute)
+	next_time := c.current_start.Add(time.Minute + time.Second)
 	return c.LoadTime(next_time)
 }
 
