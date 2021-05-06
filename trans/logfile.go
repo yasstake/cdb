@@ -361,10 +361,23 @@ func (c *Chunk) load_file(path string) error {
 	return nil
 }
 
-func (c *Chunk) load_time(time time.Time) error {
+func (c *Chunk) LoadTime(time time.Time) error {
 	path := make_full_path(time)
 
 	return c.load_file(path)
+}
+
+func (c *Chunk) GetTran() (result Transactions) {
+	for i := range c.trans {
+		action := c.trans[i].Action
+		if action == UPDATE_BUY || action == UPDATE_SELL || action == PARTIAL {
+			continue
+		}
+
+		result = append(result, c.trans[i])
+	}
+
+	return result
 }
 
 type Ohlcv struct {
@@ -457,7 +470,7 @@ func (c *Ohlcv) sell_buy(time int64, price int, volume int, buy bool) {
 
 // Calculate OHLCV in chunk within time.
 //  returns OHLCV and raw record within transaction
-func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, num_record int) {
+func (c *Chunk) GetOhlcv(from time.Time, end time.Time) (result Ohlcv, num_record int) {
 	result.init()
 
 	for i := range c.trans {
@@ -490,7 +503,7 @@ func (c *Chunk) ohlcv(from time.Time, end time.Time) (result Ohlcv, num_record i
 	return result, num_record
 }
 
-func (c *Chunk) ohlcvSec() (result []Ohlcv) {
+func (c *Chunk) GetOhlcvSec() (result []Ohlcv) {
 	start_time := int64((c.trans[0].Time_stamp+SEC_IN_NS/10)/SEC_IN_NS) * SEC_IN_NS
 	current_end := start_time + SEC_IN_NS
 

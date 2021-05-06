@@ -23,8 +23,8 @@ func TestDbOpen(t *testing.T) {
 
 	db.LoadTime(db.time_chunks[0].start)
 
-	fmt.Println(db.chunk.ohlcv(db.current_start, db.current_end))
-	fmt.Println(db.chunk.ohlcvSec())
+	fmt.Println(db.chunk.GetOhlcv(db.current_start, db.current_end))
+	fmt.Println(db.chunk.GetOhlcvSec())
 }
 
 func TestCheckBound(t *testing.T) {

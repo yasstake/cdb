@@ -28,7 +28,7 @@ func (c *Db) LoadTime(t time.Time) (Chunk, error) {
 		// retrun cached info
 		return c.chunk, nil
 	}
-	err := c.chunk.load_time(t)
+	err := c.chunk.LoadTime(t)
 
 	if err != nil {
 		// load failed unchanged.
@@ -40,6 +40,12 @@ func (c *Db) LoadTime(t time.Time) (Chunk, error) {
 	c.current_end = c.chunk.end_time()
 
 	return c.chunk, nil
+}
+
+// Open and Load next chunk(1 min after)
+func (c *Db) LoadNext() (Chunk, error) {
+	next_time := c.current_start.Add(time.Minute)
+	return c.LoadTime(next_time)
 }
 
 /*
@@ -112,6 +118,7 @@ func check_bounds(frames TimeFrames, s time.Time, e time.Time) (bound_s, bound_e
 	return bound_s, bound_e, err
 }
 
+/*
 // TODO: not implemented
 func check_bouds(c *Db, s time.Time, e time.Time) (err error) {
 	bs, be, err := check_bounds(c.time_chunks, s, e)
@@ -121,6 +128,7 @@ func check_bouds(c *Db, s time.Time, e time.Time) (err error) {
 	}
 	return nil
 }
+*/
 
 // TODO: not implemented
 func (c *Db) SelectTrans(s time.Time, e time.Time) (err error) {

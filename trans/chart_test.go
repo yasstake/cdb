@@ -59,9 +59,9 @@ func TestDumpPlotly(t *testing.T) {
 func TestMakeData(t *testing.T) {
 	var c Chunk
 	s_time := DateTime(1613864762187260 * 1000)
-	c.load_time(s_time)
+	c.LoadTime(s_time)
 
-	ohlcvs := c.ohlcvSec()
+	ohlcvs := c.GetOhlcvSec()
 
 	var plot PlotlyOhlc
 	plot.init()

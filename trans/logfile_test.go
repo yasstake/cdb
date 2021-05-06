@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 var t1, t2, t3, t4, t5, t6 Transaction
@@ -138,30 +139,49 @@ func TestSaveAndLoadBoard(t *testing.T) {
 
 func TestLoadTime(t *testing.T) {
 	var c Chunk
-	time := DateTime(1613864762187260 * 1000)
+
+	Open()
+
+	time := database.time_chunks[0].start
 	fmt.Println(time.String())
-	c.load_time(time)
+	c.LoadTime(time)
 	fmt.Println(c.info_string())
+}
+
+func TestGetTransaction(t *testing.T) {
+	var c Chunk
+
+	Open()
+
+	time := database.time_chunks[0].start
+	fmt.Println(time.String())
+	c.LoadTime(time)
+	tran := c.GetTran()
+
+	fmt.Println(tran)
 }
 
 func TestLoadAndOhlcv(t *testing.T) {
 	var c Chunk
-	s_time := DateTime(1613864762187260 * 1000)
-	e_time := DateTime(1613864762187260*1000 + 30_000_000_000)
 
-	ohlcv, err := c.ohlcv(s_time, e_time)
+	Open()
+
+	s_time := database.time_chunks[0].start.Add(time.Second)
+	e_time := s_time.Add(31 * time.Second)
+
+	ohlcv, err := c.GetOhlcv(s_time, e_time)
 	fmt.Println(ohlcv, err)
 
-	c.load_time(s_time)
-	ohlcv, err = c.ohlcv(s_time, e_time)
-	fmt.Println(ohlcv, err)
+	c.LoadTime(s_time)
+	ohlcv, num_rec := c.GetOhlcv(s_time, e_time)
+	fmt.Println(ohlcv, num_rec)
 }
 
 func TestLoadAndOhlcvSec(t *testing.T) {
 	var c Chunk
 	s_time := DateTime(1613864762187260 * 1000)
-	c.load_time(s_time)
-	ohlcvs := c.ohlcvSec()
+	c.LoadTime(s_time)
+	ohlcvs := c.GetOhlcvSec()
 	fmt.Println(ohlcvs, len(ohlcvs))
 }
 
@@ -202,7 +222,7 @@ func TestBoardLoad(t *testing.T) {
 	s_time := DateTime(int64(time))
 
 	var c Chunk
-	c.load_time(s_time)
+	c.LoadTime(s_time)
 
 	// if out of chunk err(before)
 	book_time := DateTime(int64(time - 5*SEC_IN_NS))
@@ -231,7 +251,7 @@ func TestOpenInterest(t *testing.T) {
 	s_time := DateTime(int64(time + 5*SEC_IN_NS))
 
 	var c Chunk
-	c.load_time(s_time)
+	c.LoadTime(s_time)
 
 	oi, err := c.open_interest(s_time)
 	fmt.Println(oi, err)
