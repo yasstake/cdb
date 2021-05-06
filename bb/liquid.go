@@ -3,10 +3,7 @@ package bb
 import (
 	"cdb/trans"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -22,7 +19,7 @@ type LiquidRec struct {
 func (c *LiquidRec) ToString() (r string) {
 	t, _ := c.Time.Int64()
 	time := trans.DateTime(t * int64(time.Millisecond))
-	r += time.String() + " "
+	r += time.UTC().String() + "(" + strconv.Itoa(int(t)) + ")"
 	r += c.Id.String() + " "
 	r += c.Price.String() + " "
 	r += c.Volume.String() + " "
@@ -31,43 +28,20 @@ func (c *LiquidRec) ToString() (r string) {
 	return r
 }
 
-type RestResponse struct {
-	Code    json.Number     `json:"ret_code"`
-	Message string          `json:"ret_msg"`
-	ExtCode string          `json:"ext_code"`
-	Result  json.RawMessage `json:"result"`
-	Time    json.Number     `json:"time_now"`
-}
-
-func LiquidRequest(from_ms int64) (body string, err error) {
+func LiquidRequest(from_ms int64) (body string, time time.Time, err error) {
 	url := "https://api.bybit.com/v2/public/liq-records?symbol=BTCUSD"
 	if from_ms != 0 {
 		url += "&start_time=" + strconv.Itoa(int(from_ms))
 	}
 
-	req, _ := http.NewRequest("GET", url, nil)
+	result, time, err := RestRequest(url)
 
-	client := new(http.Client)
-	resp, err := client.Do(req)
-	if err == nil {
-		defer resp.Body.Close()
-	}
-
-	byteArray, err := ioutil.ReadAll(resp.Body)
-
-	return string(byteArray), err
+	return result, time, err
 }
 
 func LiquidMessage(message string) (response RestResponse, liquid []LiquidRec, err error) {
-	err = json.Unmarshal([]byte(message), &response)
-
-	if err != nil {
-		log.Println(err)
-		return response, liquid, err
-	}
-
 	// var liquid []LiquidRec
-	err = json.Unmarshal([]byte(response.Result), &liquid)
+	err = json.Unmarshal([]byte(message), &liquid)
 
 	if err != nil {
 		log.Println(err)
@@ -77,10 +51,7 @@ func LiquidMessage(message string) (response RestResponse, liquid []LiquidRec, e
 }
 
 func LiquidMessageStr(message string) string {
-	response, liquid, _ := LiquidMessage(message)
-
-	t, _ := response.Time.Float64()
-	fmt.Println(trans.DateTime(int64(t * float64(time.Second))).String())
+	_, liquid, _ := LiquidMessage(message)
 
 	var s string
 	for i := range liquid {

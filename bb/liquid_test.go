@@ -55,11 +55,12 @@ func TestLiquidString(t *testing.T) {
 }
 
 func TestLiquidLoop(t *testing.T) {
-	s, e := LiquidRequest(0)
+	s, time, e := LiquidRequest(0)
 
 	if e != nil {
 		fmt.Println(s)
 	}
 
-	fmt.Println(s)
+	fmt.Println(time.UTC().String(), time.UTC().UnixNano())
+	fmt.Println(LiquidMessageStr(s))
 }
