@@ -3,6 +3,7 @@ package bb
 import (
 	"cdb/trans"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -28,30 +29,35 @@ func (c *LiquidRec) ToString() (r string) {
 	return r
 }
 
+// Request Liquid rest API
 func LiquidRequest(from_ms int64) (body string, time time.Time, err error) {
-	url := "https://api.bybit.com/v2/public/liq-records?symbol=BTCUSD"
+	url := "https://api.bybit.com/v2/public/liq-records?symbol=BTCUSD&limit=1000"
+
 	if from_ms != 0 {
 		url += "&start_time=" + strconv.Itoa(int(from_ms))
+		fmt.Println("[requiest]", url)
 	}
 
-	result, time, err := RestRequest(url)
+	body, time, err = RestRequest(url)
 
-	return result, time, err
+	return body, time, err
 }
 
-func LiquidMessage(message string) (response RestResponse, liquid []LiquidRec, err error) {
+// Parse Liquid JSON message and returns Header and body
+func LiquidMessage(message string) (liquid []LiquidRec, err error) {
 	// var liquid []LiquidRec
 	err = json.Unmarshal([]byte(message), &liquid)
 
 	if err != nil {
 		log.Println(err)
-		return response, liquid, err
+		return liquid, err
 	}
-	return response, liquid, nil
+	return liquid, nil
 }
 
+// Convert Liquid JSON message to string representation(for debug purpose)
 func LiquidMessageStr(message string) string {
-	_, liquid, _ := LiquidMessage(message)
+	liquid, _ := LiquidMessage(message)
 
 	var s string
 	for i := range liquid {

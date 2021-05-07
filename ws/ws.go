@@ -39,6 +39,11 @@ func (c *ServerEnv) open(db_path string) {
 
 var env ServerEnv
 
+func RootHtmlHandler(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("template/index.html")
+	t.Execute(w, "")
+}
+
 func HtmlInfoHandler(w http.ResponseWriter, r *http.Request) {
 	env.open("")
 
@@ -51,6 +56,10 @@ func HtmlInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 func TransactionHandler(w http.ResponseWriter, r *http.Request) {
 	env.open("")
+	f := r.FormValue("from")
+	fmt.Fprintln(w, f)
+	t := r.FormValue("to")
+	fmt.Fprintln(w, t)
 	fmt.Fprintf(w, "Hello!!")
 	fmt.Fprintf(w, r.URL.Path)
 }
