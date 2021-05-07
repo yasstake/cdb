@@ -30,7 +30,6 @@ func LsRatioRequest(from_ms int64) (body string, time time.Time, err error) {
 
 // Parse LS ratio JSON message and returns Header and body
 func LsRatioMessage(message string) (ls_ratio []LsRatioRec, err error) {
-	// var liquid []LiquidRec
 	err = json.Unmarshal([]byte(message), &ls_ratio)
 
 	if err != nil {
