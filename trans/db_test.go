@@ -6,13 +6,11 @@ import (
 	"time"
 )
 
-var database Db
-
-func Open() {
-
+func Open() Db {
+	var database Db
 	database.Open("/tmp/")
 
-	database.LoadTime(database.time_chunks[0].start)
+	return database
 }
 
 func TestDbOpen(t *testing.T) {
@@ -21,20 +19,69 @@ func TestDbOpen(t *testing.T) {
 	db.Open("/tmp/")
 	fmt.Println(db)
 
-	db.LoadTime(db.time_chunks[0].start)
-
-	fmt.Println(db.chunk.GetOhlcv(db.current_start, db.current_end))
-	fmt.Println(db.chunk.GetOhlcvSec())
+	db.CreateSession(db.time_chunks[0].start)
 }
 
+func TestOpenSession(t *testing.T) {
+	database := Open()
+
+	time := database.time_chunks[0].start
+	fmt.Println(time.String())
+
+	session, _ := database.CreateSession(time)
+
+	fmt.Println(session)
+}
+
+func TestGetTransaction(t *testing.T) {
+	database := Open()
+
+	start_time := database.time_chunks[0].start
+	fmt.Println(start_time.String())
+
+	session, _ := database.CreateSession(start_time)
+
+	session.SelectTrans(start_time, start_time.Add(10*time.Minute))
+
+	for {
+		r, err := session.ReadTran()
+
+		if err != nil {
+			break
+		}
+		fmt.Println(r)
+	}
+
+}
+
+/*
+func TestLoadAndOhlcv(t *testing.T) {
+	var c Chunk
+
+	Open()
+
+	s_time := database.time_chunks[0].start.Add(time.Second)
+	e_time := s_time.Add(31 * time.Second)
+
+	ohlcv, err := c.GetOhlcv(s_time, e_time)
+	fmt.Println(ohlcv, err)
+
+	c.LoadTime(s_time)
+	ohlcv, num_rec := c.GetOhlcv(s_time, e_time)
+	fmt.Println(ohlcv, num_rec)
+}
+*/
+
+/*
 func TestDbOpenNext(t *testing.T) {
 	var db Db
 
 	db.Open("/tmp/")
 	fmt.Println(db)
 
-	db.LoadTime(db.time_chunks[0].start)
-	fmt.Println(db.chunk.GetOhlcv(db.current_start, db.current_end))
+	session, _ := db.CreateSession(db.time_chunks[0].start)
+
+	fmt.Println(session.SelectOhlcv().GetOhlcv(db.current_start, db.current_end))
 
 	for {
 		_, err := db.LoadNext()
@@ -44,6 +91,7 @@ func TestDbOpenNext(t *testing.T) {
 		fmt.Println(db.chunk.GetOhlcv(db.current_start, db.current_end))
 	}
 }
+*/
 
 func TestCheckBound(t *testing.T) {
 	t1 := DateTime(time.Hour.Nanoseconds())
@@ -64,15 +112,16 @@ func TestCheckBound(t *testing.T) {
 }
 
 func TestGetBoard(t *testing.T) {
-	Open()
+	database := Open()
+	session, _ := database.CreateSession(database.time_chunks[0].start)
 
-	bid, ask, err := database.chunk.GetOrderBook(database.chunk.start_time())
+	bid, ask, err := session.GetBoard(database.time_chunks[0].start)
 
 	fmt.Println(err)
 	fmt.Println(bid.Sort(false))
 	fmt.Println(ask.Sort(true))
 
-	bid, ask, err = database.chunk.GetOrderBook(database.chunk.start_time().Add(time.Second * 10))
+	bid, ask, err = session.GetBoard(database.time_chunks[0].start.Add(time.Second * 50))
 
 	fmt.Println(err)
 	fmt.Println(bid.Sort(false))
@@ -80,9 +129,11 @@ func TestGetBoard(t *testing.T) {
 }
 
 func BenchmarkGetBoard(b *testing.B) {
-	Open()
+	database := Open()
+	session, _ := database.CreateSession(database.time_chunks[0].start)
+
 	for i := 0; i < b.N; i++ {
-		_, _, err := database.chunk.GetOrderBook(database.chunk.start_time().Add(time.Second * 50))
+		_, _, err := session.GetBoard(database.time_chunks[0].start.Add(time.Second * 50))
 		if err != nil {
 			fmt.Println(err)
 		}

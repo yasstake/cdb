@@ -6,7 +6,6 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	"time"
 )
 
 var t1, t2, t3, t4, t5, t6 Transaction
@@ -135,46 +134,6 @@ func TestSaveAndLoadBoard(t *testing.T) {
 	if !reflect.DeepEqual(bd, r1) {
 		t.Error("does not match", bd, r1)
 	}
-}
-
-func TestLoadTime(t *testing.T) {
-	var c Chunk
-
-	Open()
-
-	time := database.time_chunks[0].start
-	fmt.Println(time.String())
-	c.LoadTime(time)
-	fmt.Println(c.info_string())
-}
-
-func TestGetTransaction(t *testing.T) {
-	var c Chunk
-
-	Open()
-
-	time := database.time_chunks[0].start
-	fmt.Println(time.String())
-	c.LoadTime(time)
-	tran := c.GetTran()
-
-	fmt.Println(tran)
-}
-
-func TestLoadAndOhlcv(t *testing.T) {
-	var c Chunk
-
-	Open()
-
-	s_time := database.time_chunks[0].start.Add(time.Second)
-	e_time := s_time.Add(31 * time.Second)
-
-	ohlcv, err := c.GetOhlcv(s_time, e_time)
-	fmt.Println(ohlcv, err)
-
-	c.LoadTime(s_time)
-	ohlcv, num_rec := c.GetOhlcv(s_time, e_time)
-	fmt.Println(ohlcv, num_rec)
 }
 
 func TestLoadAndOhlcvSec(t *testing.T) {

@@ -2,6 +2,7 @@ package bb
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 )
@@ -37,6 +38,28 @@ type TickerRec struct {
 	// DeliveryTime           json.Number `json:"delivery_time"`            // ""
 }
 
+func GetTickerInfo() (ticker TickerRec, err error) {
+	body, time, err := TickerRequest()
+
+	if err != nil {
+		log.Println("Ticker API access error", time.UTC().String(), err)
+		return ticker, err
+	}
+
+	tickers, err := TickerMessage(body)
+	if err != nil {
+		return ticker, err
+	}
+
+	if len(tickers) != 1 {
+		return ticker, fmt.Errorf("ticker parse error(ticker len %d", len(tickers))
+	}
+
+	ticker = tickers[0]
+	return ticker, err
+}
+
+// Request bybit ticker REST API
 func TickerRequest() (body string, time time.Time, err error) {
 	url := "https://api.bybit.com//v2/public/tickers?symbol=BTCUSD"
 
@@ -45,6 +68,7 @@ func TickerRequest() (body string, time time.Time, err error) {
 	return body, time, err
 }
 
+// Parse ticker API response data
 func TickerMessage(message string) (ticker []TickerRec, err error) {
 	err = json.Unmarshal([]byte(message), &ticker)
 

@@ -64,6 +64,10 @@ func DateTime(nsec int64) time.Time {
 	return t
 }
 
+func TimeToNsec(t time.Time) int64 {
+	return t.UnixNano()
+}
+
 // make log file path from Time
 func make_path(time time.Time) (dir, path string) {
 	yy := time.Year()

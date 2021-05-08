@@ -39,8 +39,9 @@ func (c *ServerEnv) open(db_path string) {
 
 var env ServerEnv
 
-func RootHtmlHandler(w http.ResponseWriter, r *http.Request) {
+func TickerInfoHandler(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("template/index.html")
+
 	t.Execute(w, "")
 }
 

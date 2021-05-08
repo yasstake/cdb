@@ -12,7 +12,7 @@ func TestStartServer(t *testing.T) {
 
 	http.HandleFunc("/api/tran", TransactionHandler)
 	http.HandleFunc("/html/info", HtmlInfoHandler)
-	http.HandleFunc("/", RootHtmlHandler)
+	http.HandleFunc("/", TickerInfoHandler)
 
 	server.ListenAndServe()
 }
