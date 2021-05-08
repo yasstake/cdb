@@ -350,10 +350,12 @@ func (c *Chunk) dump() {
 
 func (c *Chunk) load_file(path string) error {
 	stream, err := os.Open(path)
+
 	if err != nil {
 		log.Printf("cannot open file%s %s", path, err)
 		return err
 	}
+	defer stream.Close()
 
 	gzip_reader, _ := gzip.NewReader(stream)
 	defer gzip_reader.Close()

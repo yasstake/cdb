@@ -53,7 +53,7 @@ func (c *DbSession) LoadTime(t time.Time) (err error) {
 	c.current_start = c.chunk.start_time()
 	c.current_end = c.chunk.end_time()
 	c.chunk_len = len(c.chunk.trans)
-	c.current_index = -1
+	c.current_index = 0
 
 	return nil
 }
@@ -149,22 +149,26 @@ func check_bounds(frames TimeFrames, s time.Time, e time.Time) (bound_s, bound_e
 }
 
 func (c *DbSession) ReadTran() (tran Transaction, err error) {
-	if c.chunk_len < c.current_index {
-		c.LoadNext()
-	}
-	c.current_index += 1
-	tran = c.chunk.trans[c.current_index]
-
-	/*
-		TODO: implement skip before select time.
-		if c.select_start < tran.Time_stamp {
-
+	for {
+		if c.chunk_len <= c.current_index {
+			err = c.LoadNext()
+			if err != nil {
+				break
+			}
 		}
-	*/
+		tran = c.chunk.trans[c.current_index]
+		c.current_index += 1
 
-	if tran.Time_stamp <= c.select_end {
-		err = fmt.Errorf("end of select")
-		return tran, err
+		if tran.Action == UPDATE_BUY || tran.Action == UPDATE_SELL || tran.Action == PARTIAL {
+			continue
+		}
+
+		if c.select_end <= tran.Time_stamp {
+			err = fmt.Errorf("end of select")
+			return tran, err
+		} else {
+			return tran, nil
+		}
 	}
 
 	return tran, err
@@ -177,7 +181,7 @@ func (c *DbSession) SelectTrans(s time.Time, e time.Time) (reader TranReader, er
 	if err != nil {
 		return nil, err
 	}
-	if bs == BOUND_AFTER || be == BOUND_BEFORE || e.Before(s) {
+	if bs == BOUND_BEFORE || be == BOUND_AFTER || e.Before(s) {
 		err = fmt.Errorf("select time is out of chunk %s, %s", s, e)
 		return nil, err
 	}

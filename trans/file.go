@@ -111,7 +111,7 @@ func Time_chunks(base_path string) (times TimeFrames) {
 	files, err := ioutil.ReadDir(base_path)
 
 	if err != nil {
-		fmt.Println("Error")
+		fmt.Printf("[ERROR] cannot open directory %s [%s]", base_path, err)
 	}
 
 	// Open YYYY

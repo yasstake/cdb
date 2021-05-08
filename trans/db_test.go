@@ -2,6 +2,7 @@ package trans
 
 import (
 	"fmt"
+	"log"
 	"testing"
 	"time"
 )
@@ -41,10 +42,15 @@ func TestGetTransaction(t *testing.T) {
 
 	session, _ := database.CreateSession(start_time)
 
-	session.SelectTrans(start_time, start_time.Add(10*time.Minute))
+	reader, err := session.SelectTrans(start_time, start_time.Add(10*time.Minute))
+
+	if err != nil {
+		log.Println(err)
+		t.Error()
+	}
 
 	for {
-		r, err := session.ReadTran()
+		r, err := reader.ReadTran()
 
 		if err != nil {
 			break
