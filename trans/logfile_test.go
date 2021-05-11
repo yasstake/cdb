@@ -106,6 +106,18 @@ func TestTransactionsSaveLoad(t *testing.T) {
 	fmt.Println(tr, r1)
 }
 
+func TestSortTransaction(t *testing.T) {
+	t1 := Transaction{1, 1, 1, 1, 1}
+	t2 := Transaction{2, 4, 1, 1, 1}
+	t3 := Transaction{3, 3, 1, 1, 1}
+
+	trs := Transactions{t1, t2, t3}
+
+	fmt.Println(trs)
+	trs.time_sort()
+	fmt.Println(trs)
+}
+
 func TestInitBoard(t *testing.T) {
 	fmt.Println(bd)
 	fmt.Println(bd.depth())

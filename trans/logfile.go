@@ -188,6 +188,10 @@ func (t *Transactions) load(stream io.ReadCloser) Transactions {
 	return *t
 }
 
+func (c Transactions) time_sort() {
+	sort.Slice(c, func(i, j int) bool { return c[i].Time_stamp < c[j].Time_stamp })
+}
+
 // Store order book
 type Board map[int]int
 

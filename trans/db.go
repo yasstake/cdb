@@ -174,7 +174,7 @@ func (c *DbSession) ReadTran() (tran Transaction, err error) {
 	return tran, err
 }
 
-// TODO: not implemented
+// Select transaction from session (setup time duration and returns reader inteface)
 func (c *DbSession) SelectTrans(s time.Time, e time.Time) (reader TranReader, err error) {
 	bs, be, err := check_bounds(c.db.time_chunks, s, e)
 
@@ -203,4 +203,8 @@ func (c *DbSession) SelectOhlcv(s time.Time, e time.Time) error {
 	// ohlcv, _ := c.chunk.ohlcv(s, e)
 
 	return nil
+}
+
+func (c *DbSession) ReadOhlcv() (ohlcv Ohlcv, err error) {
+	return ohlcv, err
 }
