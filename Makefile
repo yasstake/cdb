@@ -32,3 +32,8 @@ run-ws:
 
 loc:
 	 find . -name \*.go | xargs wc
+
+
+download:
+	-mkdir LOG
+	wget -o LOG https://public.bybit.com/trading/BTCUSD/BTCUSD2021-05-09.csv.gz
