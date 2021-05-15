@@ -104,26 +104,7 @@ func TestLogLoad3(t *testing.T) {
 
 var result_item []int
 
-func TestKnapSack(t *testing.T) {
-	// Original
-	// item := []int{1000, -1000, 30, -30, 10, -10, 10, -10}
-	// target := 100 / 2
-
-	// Modified
-	item := []int{1000, 1000, 100, 100, 1, 2, 3, 4, 5, 10, 20, 13, 15, 16, 10, 21, 1000}
-	//item := []int{1000, 100, 10}
-	target := 1110
-
-	result_item = make([]int, len(item))
-	fmt.Println(target)
-	//fmt.Println(Dp(item, len(item)-1, target))
-	fmt.Println(Dp2(item, 0, target))
-	fmt.Println(result_item)
-}
-
 /*
-
-
 
 func Dp(item []int, max_value int) {
 	n := len(item)
@@ -182,40 +163,6 @@ fmt.Println(res)
 
 
 */
-
-func Dp2(item []int, offset int, target int) (remain int) {
-	fmt.Println("CALL ", offset, target)
-
-	l := len(item)
-
-	if offset == l {
-		if target == 0 {
-			fmt.Println("HIT")
-			return 0
-		} else {
-			fmt.Println("err")
-			return target
-		}
-	} else {
-		r1 := Dp2(item, offset+1, target)
-		if r1 == 0 {
-			fmt.Print(item[offset], " ", r1)
-			return 0
-		}
-
-		diff := target - item[offset]
-		if 0 <= diff {
-			r2 := Dp2(item, offset+1, diff)
-			if r2 == 0 {
-				fmt.Print("[", item[offset], "] ", r1)
-				return 0
-			} else {
-				return diff
-			}
-		}
-	}
-	return target
-}
 
 func Dp(item []int, i int, max_vol int) (result int, weight int) {
 	fmt.Println("index=", i, "maxvol=", max_vol)
