@@ -454,8 +454,8 @@ func Connect(flag_file_name string, w io.WriteCloser, close_wait_min int) {
 	flag_file.Create()
 	peer_reset := make(chan struct{})
 
-	// wait 100 sec to terminate
-	go flag_file.Check_other_process_loop(100, peer_reset)
+	// wait 300 sec to terminate
+	go flag_file.Check_other_process_loop(300, peer_reset)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
