@@ -91,7 +91,16 @@ func FindCombination(item OiItem, offset int, target int) (remain int) {
 
 // TODO: not implemented
 //
-func FindTriMatch(item OiItem, offset int, target int) int {
+func FindTriMatch(item OiItem, offset int, target int) (result int) {
+	l := item.Len()
+
+	for i := 0; i < l; i++ {
+
+	}
+	return result
+}
+
+func FindTriMatchRaw(item OiItem, offset int, target int) int {
 	l := item.Len()
 
 	if offset == l {
@@ -106,9 +115,9 @@ func FindTriMatch(item OiItem, offset int, target int) int {
 			return 0
 		}
 
-		diff := target - item.Get(offset)
+		diff := target - item.Get(offset)*2
 		if 0 <= diff {
-			r2 := FindCombination(item, offset+1, diff)
+			r2 := FindTriMatch(item, offset+1, diff)
 			if r2 == 0 {
 				item.Hit(offset)
 				return 0

@@ -472,6 +472,7 @@ func Connect(flag_file_name string, w io.WriteCloser, close_wait_min int) {
 	defer c.Close()
 
 	var mutex sync.Mutex
+	in_loop := bool(true)
 
 	write := func(s string) {
 		mutex.Lock()
@@ -502,6 +503,10 @@ func Connect(flag_file_name string, w io.WriteCloser, close_wait_min int) {
 				}
 			}
 
+			if !in_loop {
+				log.Println("exit liquid listen loop")
+				break
+			}
 			time.Sleep(time.Duration(sleep_time * int(time.Second)))
 		}
 	}()
@@ -601,6 +606,7 @@ func Connect(flag_file_name string, w io.WriteCloser, close_wait_min int) {
 
 close_wait:
 	{
+		in_loop = false
 		log.Println("Peer reset close")
 
 		s := 0
