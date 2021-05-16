@@ -78,6 +78,57 @@ func TestTransactionInit(t *testing.T) {
 	fmt.Println(tr)
 }
 
+func TestTransactionGetAndLen(t *testing.T) {
+	t1 := Transaction{1, 1, 0, 3, 1}
+	t2 := Transaction{2, 4, 1, 4, 1}
+	t3 := Transaction{3, 3, 2, 5, 1}
+
+	trs := Transactions{t1, t2, t3}
+
+	if trs.Get(0) != trs.Get(1) {
+		t.Error("mismatch index=", 0, trs.Get(1))
+	}
+	if trs.Get(2) != trs.Get(3) {
+		t.Error("mismatch index=", 1, trs.Get(2))
+	}
+	if trs.Get(4) != trs.Get(5) {
+		t.Error("mismatch index=", 2, trs.Get(4))
+	}
+	fmt.Println(trs.Get(0))
+	fmt.Println(trs.Get(1))
+	fmt.Println(trs.Get(2))
+	fmt.Println(trs.Get(3))
+	fmt.Println(trs.Get(4))
+	fmt.Println(trs.Get(5))
+
+	fmt.Println("len=", trs.Len())
+}
+
+func TestTransactionSetHit(t *testing.T) {
+	t1 := Transaction{1, 1, 0, 3, 0}
+	t2 := Transaction{2, 4, 1, 4, 0}
+	t3 := Transaction{3, 3, 2, 5, 0}
+
+	trs := Transactions{t1, t2, t3}
+
+	fmt.Println(trs)
+
+	trs.Hit(0)
+	fmt.Println(trs)
+	trs.Hit(1)
+	fmt.Println(trs)
+
+	trs.Hit(3)
+	fmt.Println(trs)
+	trs.Hit(2)
+	fmt.Println(trs)
+
+	trs.Hit(4)
+	fmt.Println(trs)
+	trs.Hit(5)
+	fmt.Println(trs)
+}
+
 func TestTransactionSaveLoad(t *testing.T) {
 	f := create_file("/tmp/savedata.bin")
 	t1.save(f)

@@ -137,7 +137,7 @@ type Transaction struct {
 	Time_stamp int64
 	Price      int32
 	Volume     int64
-	NextTime   int64
+	OtherInfo  int64
 }
 
 func (c *Transaction) info_string() (result string) {
@@ -145,7 +145,7 @@ func (c *Transaction) info_string() (result string) {
 	result += "{Action:" + strconv.Itoa(int(c.Action)) + "}"
 	result += "{Price:" + strconv.Itoa(int(c.Price)) + "}"
 	result += "{vol:" + strconv.Itoa(int(c.Volume)) + "}"
-	result += "{next_time:" + strconv.Itoa(int(c.NextTime)) + "}"
+	result += "{next_time:" + strconv.Itoa(int(c.OtherInfo)) + "}"
 
 	return result
 }
@@ -164,6 +164,32 @@ type Transactions []Transaction
 
 func (t *Transactions) init() {
 	*t = make(Transactions, 0, 1000)
+}
+
+// Implement OiItem interface
+func (c *Transactions) Get(index int) int {
+	i := int((index) / 2)
+	value := int((*c)[i].Volume)
+
+	return value
+}
+
+// Implement OiItem interface
+func (c *Transactions) Hit(index int) {
+	fmt.Println("HIT")
+	i := int((index) / 2)
+	offset := index % 2
+
+	if offset == 0 {
+		(*c)[i].OtherInfo |= 0x01
+	} else {
+		(*c)[i].OtherInfo |= 0x02
+	}
+}
+
+// Implement OiItem interface
+func (c *Transactions) Len() int {
+	return len(*c) * 2
 }
 
 func (t Transactions) save(stream io.WriteCloser) {
@@ -695,7 +721,7 @@ func Load_log(file string) (chunk Chunk) {
 				record.Volume = r
 			case 4: // Time Info
 				t, _ := strconv.ParseInt(v, 10, 64)
-				record.NextTime = t
+				record.OtherInfo = t
 			}
 		}
 

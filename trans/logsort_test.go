@@ -39,7 +39,7 @@ func TestLogLoad2(t *testing.T) {
 			continue
 		}
 		t := tran[i]
-		fmt.Printf("%2d %20d %10d %20d %16d\n", t.Action, t.Time_stamp, t.Price, t.Volume, t.NextTime)
+		fmt.Printf("%2d %20d %10d %20d %16d\n", t.Action, t.Time_stamp, t.Price, t.Volume, t.OtherInfo)
 
 		if 200 < max_rec {
 			break
@@ -72,13 +72,19 @@ func TestLogLoad3(t *testing.T) {
 
 		if action == OPEN_INTEREST {
 			diff_oi = tran[i].Volume - last_oi
+
+			var total_volume int
+			for i := range trans {
+				total_volume += int(trans[i].Volume)
+			}
+
+			fmt.Println("-----")
 			fmt.Println(trans)
-			fmt.Println(diff_oi)
+			fmt.Println(diff_oi, total_volume)
 
 			if len(trans) != 0 {
-				// Dp2(trans, 0, diff_oi)
-				//mask := FindBestMatchMask(trans, int(diff_oi))
-				//fmt.Println(mask)
+				FindCombination(&trans, 0, total_volume+int(diff_oi))
+				fmt.Println(trans)
 			}
 
 			trans = make(Transactions, 0)

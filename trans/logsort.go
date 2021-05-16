@@ -26,7 +26,7 @@ func CsvWrite(data Transactions, stream io.Writer) {
 
 	for i := range data {
 		r := fmt.Sprintf("%d,%d,%d,%d,%d\n",
-			data[i].Action, data[i].Time_stamp-current_time, data[i].Price-current_price, data[i].Volume, data[i].NextTime)
+			data[i].Action, data[i].Time_stamp-current_time, data[i].Price-current_price, data[i].Volume, data[i].OtherInfo)
 
 		stream.Write([]byte(r))
 		current_time = data[i].Time_stamp
@@ -102,14 +102,14 @@ func LogLoad(from_file string) (result Transactions) {
 				record.Volume = r
 			case 4: // Time Info
 				if v == "" {
-					record.NextTime = 0
+					record.OtherInfo = 0
 				} else {
 					t, err := strconv.ParseInt(v, 10, 64)
 					if err != nil {
 						log.Println("[TIMEINFO]", err, v)
 					}
 
-					record.NextTime = t
+					record.OtherInfo = t
 				}
 			}
 		}

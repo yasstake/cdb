@@ -5,9 +5,15 @@ import (
 	"log"
 )
 
-const OI_OPEN_OPEN = 1
+const OI_OPEN_OPEN = 3
 const OI_OPEN_CLOSE = 2
-const OI_CLOSE_CLOSE = 3
+const OI_CLOSE_CLOSE = 1
+
+type OiItem interface {
+	Get(int) int
+	Hit(int)
+	Len() int
+}
 
 type IntOiItem struct {
 	item []int
@@ -16,24 +22,19 @@ type IntOiItem struct {
 
 func (c *IntOiItem) Get(index int) int {
 	pos := int(index / 2)
-	// mod := index % 2
 
-	return c.item[pos]
+	value := c.item[pos]
+
+	return value
 }
 
 func (c *IntOiItem) Hit(index int) {
-	fmt.Println("HIT", c.Get(index), c.mask[index])
+	fmt.Println("HIT", c.Get(index))
 	c.mask[index] = true
 }
 
 func (c *IntOiItem) Len() int {
 	return len(c.item) * 2
-}
-
-type OiItem interface {
-	Get(int) int
-	Hit(int)
-	Len() int
 }
 
 func make_oc_slice(mask []bool) (result []int) {
@@ -64,16 +65,13 @@ func FindCombination(item OiItem, offset int, target int) (remain int) {
 
 	if offset == l {
 		if target == 0 {
-			fmt.Println("HIT")
 			return 0
 		} else {
-			// fmt.Println("err")
 			return target
 		}
 	} else {
 		r1 := FindCombination(item, offset+1, target)
 		if r1 == 0 {
-			fmt.Print(item.Get(offset), " ", r1)
 			return 0
 		}
 
@@ -81,7 +79,6 @@ func FindCombination(item OiItem, offset int, target int) (remain int) {
 		if 0 <= diff {
 			r2 := FindCombination(item, offset+1, diff)
 			if r2 == 0 {
-				fmt.Print("[", item.Get(offset), "] ", r1)
 				item.Hit(offset)
 				return 0
 			} else {
