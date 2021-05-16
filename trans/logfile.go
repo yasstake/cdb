@@ -176,7 +176,7 @@ func (c *Transactions) Get(index int) int {
 
 // Implement OiItem interface
 func (c *Transactions) Hit(index int) {
-	fmt.Println("HIT")
+	fmt.Println("HIT", c.Get(index))
 	i := int((index) / 2)
 	offset := index % 2
 

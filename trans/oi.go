@@ -89,6 +89,37 @@ func FindCombination(item OiItem, offset int, target int) (remain int) {
 	return target
 }
 
+// TODO: not implemented
+//
+func FindTriMatch(item OiItem, offset int, target int) int {
+	l := item.Len()
+
+	if offset == l {
+		if target == 0 {
+			return 0
+		} else {
+			return target
+		}
+	} else {
+		r1 := FindTriMatch(item, offset+1, target)
+		if r1 == 0 {
+			return 0
+		}
+
+		diff := target - item.Get(offset)
+		if 0 <= diff {
+			r2 := FindCombination(item, offset+1, diff)
+			if r2 == 0 {
+				item.Hit(offset)
+				return 0
+			} else {
+				return diff
+			}
+		}
+	}
+	return target
+}
+
 /*
 // FInd best match mask for transaction.
 // TODO: Even if there are multiple combintion to fit, this function return only first match

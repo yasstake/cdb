@@ -83,8 +83,8 @@ func TestLogLoad3(t *testing.T) {
 			fmt.Println(diff_oi, total_volume)
 
 			if len(trans) != 0 {
-				FindCombination(&trans, 0, total_volume+int(diff_oi))
-				fmt.Println(trans)
+				r := FindCombination(&trans, 0, total_volume+int(diff_oi))
+				fmt.Println(r, trans)
 			}
 
 			trans = make(Transactions, 0)

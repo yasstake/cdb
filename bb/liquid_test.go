@@ -24,8 +24,22 @@ func TestParseMessage(t *testing.T) {
 		t.Error()
 	}
 
-	var liquid []LiquidRec
+	var liquid LiquidRecs
 	err = json.Unmarshal([]byte(response.Result), &liquid)
+
+	if err != nil {
+		fmt.Println(err)
+		t.Error()
+	}
+
+	fmt.Println(liquid.ToLog())
+}
+
+func TestToLogMessage(t *testing.T) {
+	var response RestResponse
+	var liquid []LiquidRec
+
+	err := json.Unmarshal([]byte(response.Result), &liquid)
 
 	if err != nil {
 		fmt.Println(err)

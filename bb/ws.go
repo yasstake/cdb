@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -77,7 +78,7 @@ func (c *Order) ToLog() string {
 	price, _ := c.Price.Float64()
 	volume, _ := c.Size.Float64()
 
-	return make_rec(action, c.Time, price, volume)
+	return make_rec_op(action, c.Time, price, volume, strconv.Itoa(int(c.Id)))
 }
 
 type SnapShot []Order
@@ -123,8 +124,14 @@ func (c *TradeRec) ToLog() (result string) {
 		log.Fatalln("Unknown side", c.Side)
 	}
 
-	price, _ := c.Price.Float64()
-	volume, _ := c.Size.Float64()
+	price, err := c.Price.Float64()
+	if err != nil {
+		log.Println(err)
+	}
+	volume, err := c.Size.Float64()
+	if err != nil {
+		log.Println(err)
+	}
 
 	return make_rec(action, c.Time, price, volume)
 }
@@ -464,9 +471,40 @@ func Connect(flag_file_name string, w io.WriteCloser, close_wait_min int) {
 	}
 	defer c.Close()
 
+	var mutex sync.Mutex
+
 	write := func(s string) {
+		mutex.Lock()
+		defer mutex.Unlock()
+
 		w.Write([]byte(s))
 	}
+
+	go func() {
+		var last_liquid_time int64
+		var sleep_time int
+
+		for {
+			liqs, _, err := LiquidRequest(&last_liquid_time)
+			if err != nil {
+				log.Println(err)
+			}
+
+			if len(liqs) != 0 {
+				write(liqs.ToLog())
+				log.Println("liquid ", len(liqs), " records")
+				sleep_time = 1
+			} else {
+				log.Println("liquid sleep", sleep_time)
+				sleep_time = sleep_time + 5
+				if 30 <= sleep_time {
+					sleep_time = 30
+				}
+			}
+
+			time.Sleep(time.Duration(sleep_time * int(time.Second)))
+		}
+	}()
 
 	go func() {
 		var message_count int
