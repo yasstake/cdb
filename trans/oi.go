@@ -3,6 +3,7 @@ package trans
 import (
 	"fmt"
 	"log"
+	"strconv"
 )
 
 const OI_OPEN_OPEN = 3
@@ -89,18 +90,37 @@ func FindCombination(item OiItem, offset int, target int) (remain int) {
 	return target
 }
 
+var tri_cache map[string]int
+
 // TODO: not implemented
 //
-func FindTriMatch(item OiItem, offset int, target int) (result int) {
+func FindTriMatch(item OiItem, target int) (result int) {
+	tri_cache = make(map[string]int)
 	l := item.Len()
 
+	var total int
 	for i := 0; i < l; i++ {
-
+		total += item.Get(i)
 	}
-	return result
+
+	return FindTriMatchRaw(item, 0, total+target)
 }
 
 func FindTriMatchRaw(item OiItem, offset int, target int) int {
+
+	v, ok := tri_cache[strconv.Itoa(offset)+"-"+strconv.Itoa(target)]
+	if ok {
+		// fmt.Print("cache")
+		return v
+	}
+
+	result := FindTriMatchRawNoCache(item, offset, target)
+	tri_cache[strconv.Itoa(offset)+"-"+strconv.Itoa(target)] = result
+
+	return result
+}
+
+func FindTriMatchRawNoCache(item OiItem, offset int, target int) int {
 	l := item.Len()
 
 	if offset == l {
@@ -110,14 +130,14 @@ func FindTriMatchRaw(item OiItem, offset int, target int) int {
 			return target
 		}
 	} else {
-		r1 := FindTriMatch(item, offset+1, target)
+		r1 := FindTriMatchRaw(item, offset+1, target)
 		if r1 == 0 {
 			return 0
 		}
 
 		diff := target - item.Get(offset)*2
 		if 0 <= diff {
-			r2 := FindTriMatch(item, offset+1, diff)
+			r2 := FindTriMatchRaw(item, offset+1, diff)
 			if r2 == 0 {
 				item.Hit(offset)
 				return 0
@@ -126,6 +146,7 @@ func FindTriMatchRaw(item OiItem, offset int, target int) int {
 			}
 		}
 	}
+
 	return target
 }
 

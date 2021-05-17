@@ -73,17 +73,20 @@ func TestLogLoad3(t *testing.T) {
 		if action == OPEN_INTEREST {
 			diff_oi = tran[i].Volume - last_oi
 
-			var total_volume int
-			for i := range trans {
-				total_volume += int(trans[i].Volume)
-			}
+			/*
+				var total_volume int
+				for i := range trans {
+					total_volume += int(trans[i].Volume)
+				}
+			*/
 
 			fmt.Println("-----")
 			fmt.Println(trans)
-			fmt.Println("DIFF oi=", diff_oi, "total=", total_volume)
+			fmt.Println("DIFF oi=", diff_oi)
 
-			if len(trans) != 0 {
-				r := FindCombination(&trans, 0, total_volume+int(diff_oi))
+			l := len(trans)
+			if l != 0 && l < 16 {
+				r := FindTriMatch(&trans, int(diff_oi))
 				fmt.Println(r, trans)
 			}
 

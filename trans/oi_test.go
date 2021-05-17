@@ -33,3 +33,14 @@ func TestFindCombination3(t *testing.T) {
 	r2 := make_oc_slice(item.mask)
 	fmt.Println(r2)
 }
+
+func TestTrimatch(t *testing.T) {
+	t1 := Transaction{1, 1, 1, 1, 0}
+	t2 := Transaction{2, 4, 1, 1, 0}
+	t3 := Transaction{3, 3, 1, 1, 0}
+
+	trs := Transactions{t1, t2, t3}
+
+	r := FindTriMatch(&trs, -2)
+	fmt.Println(trs, r)
+}

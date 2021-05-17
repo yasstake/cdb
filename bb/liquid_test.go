@@ -72,21 +72,20 @@ func TestLiquidString(t *testing.T) {
 var last_liquid_time int64
 
 func TestLiquidRequiest(t *testing.T) {
-	s, _, _ := LiquidRequest(1620378345745)
-	fmt.Println(LiquidMessageStr(s))
+	last_time := int64(1620378345745)
+	s, _, _ := LiquidRequest(&last_time)
+	fmt.Println(s.ToLog())
 }
 
 func TestLiquidLoop(t *testing.T) {
 
 	for i := 0; i < 200; i++ {
 		fmt.Println(last_liquid_time)
-		s, _, e := LiquidRequest(last_liquid_time)
+		liquid, _, e := LiquidRequest(&last_liquid_time)
 
 		if e != nil {
-			fmt.Println(s)
+			fmt.Println(liquid.ToLog())
 		}
-
-		liquid, _ := LiquidMessage(s)
 
 		l := len(liquid)
 
@@ -95,7 +94,7 @@ func TestLiquidLoop(t *testing.T) {
 			last_liquid_time = t + 1
 		}
 
-		fmt.Println(LiquidMessageStr(s))
+		fmt.Println(LiquidMessageStr(liquid.ToLog()))
 		now := (time.Now().UTC().UnixNano() / 1_000_000)
 		now_string := time.Now().UTC().String()
 		fmt.Println(now_string, now, last_liquid_time, now-last_liquid_time)
