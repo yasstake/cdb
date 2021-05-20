@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func CsvWriteToFile(data Transactions, file_name string) {
+func CsvWriteToFile(data TransactionSlice, file_name string) {
 	fw, err := os.Create(file_name)
 	if err != nil {
 		log.Println(err)
@@ -20,7 +20,7 @@ func CsvWriteToFile(data Transactions, file_name string) {
 	CsvWrite(data, fw)
 }
 
-func CsvWrite(data Transactions, stream io.Writer) {
+func CsvWrite(data TransactionSlice, stream io.Writer) {
 	var current_time int64
 	var current_price int32
 
@@ -34,7 +34,7 @@ func CsvWrite(data Transactions, stream io.Writer) {
 	}
 }
 
-func LogLoad(from_file string) (result Transactions) {
+func LogLoad(from_file string) (result TransactionSlice) {
 	f, err := os.Open(from_file)
 
 	if err != nil {

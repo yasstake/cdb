@@ -12,24 +12,24 @@ func TestCsvWrite(t *testing.T) {
 	t2 := Transaction{2, 4, 1, 1, 1}
 	t3 := Transaction{3, 3, 1, 1, 1}
 
-	trs := Transactions{t1, t2, t3}
+	trs := TransactionSlice{t1, t2, t3}
 
 	CsvWrite(trs, os.Stdout)
 
-	trs.time_sort()
+	trs.TimeSort()
 	CsvWrite(trs, os.Stdout)
 }
 
 func TestLogLoad(t *testing.T) {
 	r := LogLoad("../DATA/2021-05-05T23-07-09.log.gz")
 
-	r.time_sort()
+	r.TimeSort()
 }
 
 func TestLogLoad2(t *testing.T) {
 	tran := LogLoad("../DATA/2021-05-05T23-07-09.log.gz")
 
-	tran.time_sort()
+	tran.TimeSort()
 
 	var max_rec int
 
@@ -51,11 +51,11 @@ func TestLogLoad2(t *testing.T) {
 func TestLogLoad3(t *testing.T) {
 	tran := LogLoad("../DATA/2021-05-05T23-07-09.log.gz")
 
-	tran.time_sort()
+	tran.TimeSort()
 
 	var max_rec int
 
-	var trans Transactions
+	var trans TransactionSlice
 	var last_oi int64
 	var diff_oi int64
 
@@ -81,16 +81,15 @@ func TestLogLoad3(t *testing.T) {
 			*/
 
 			fmt.Println("-----")
-			fmt.Println(trans)
 			fmt.Println("DIFF oi=", diff_oi)
 
 			l := len(trans)
-			if l != 0 && l < 16 {
+			if l != 0 && l < 20 {
 				r := FindTriMatch(&trans, int(diff_oi))
 				fmt.Println(r, trans)
 			}
 
-			trans = make(Transactions, 0)
+			trans = make(TransactionSlice, 0)
 
 			last_oi = tran[i].Volume
 		}
@@ -112,66 +111,6 @@ func TestLogLoad3(t *testing.T) {
 //
 
 var result_item []int
-
-/*
-
-func Dp(item []int, max_value int) {
-	n := len(item)
-
-	dp := make([][]int64, n+1)
-
-	for i := 0; i < n+1; i++ {
-	dp[i] = make([]int64, M+1)
-
-}
-// 初期化
-for i := 0; i <= N; i++ {
-	for j := 1; j <= M; j++ {
-		dp[i][j] = -1
-	}
-}
-dp[0][0] = 0
-// traceにはどこの(i, j)から来たかの情報を保持させる
-for i := 1; i <= N; i++ {
-	for j := 0; j <= M; j++ {
-		if dp[i-1][j] >= 0 {
-			dp[i][j] = dp[i-1][j]
-			trace[i][j] = Route{i - 1, j}
-		}
-		if j >= weights[i-1] && dp[i-1][j-weights[i-1]] >= 0 && dp[i][j] < dp[i-1][j-weights[i-1]]+values[i-1] {
-			dp[i][j] = dp[i-1][j-weights[i-1]] + values[i-1]
-			trace[i][j] = Route{i - 1, j - weights[i-1]}
-		}
-	}
-}
-// 出力
-fmt.Println(dp[N][M])
-// DPテーブルの確認
-fmt.Println(dp)
-pnt := Route{N, M}
-routes := []Route{}
-res := []int{}
-// トレースバック
-for pnt.x != 0 {
-	routes = append(routes, pnt)
-	pre := pnt
-	pnt = trace[pnt.x][pnt.y]
-	// 異なる重さのところから値が来ている場合は荷物iを追加したとき
-	if pre.y != pnt.y {
-		res = append(res, pre.x)
-	}
-}
-fmt.Println(routes)
-// 重さがWになるときのベストな荷物の組み合わせの出力
-fmt.Println(res)
-}
-
-}
-
-
-
-
-*/
 
 func Dp(item []int, i int, max_vol int) (result int, weight int) {
 	fmt.Println("index=", i, "maxvol=", max_vol)

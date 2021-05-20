@@ -9,7 +9,7 @@ import (
 )
 
 var t1, t2, t3, t4, t5, t6 Transaction
-var tr Transactions
+var tr TransactionSlice
 var bd Board
 
 func init2() {
@@ -19,7 +19,7 @@ func init2() {
 	t4 = Transaction{4, 2, 3, 4, 0}
 	t5 = Transaction{5, 2, 3, 4, 0}
 	t6 = Transaction{6, 2, 3, 4, 0}
-	tr = Transactions{t1, t2, t3, t4, t5, t6}
+	tr = TransactionSlice{t1, t2, t3, t4, t5, t6}
 	bd.init()
 	bd.set(1, 1)
 	bd.set(2, 1)
@@ -83,7 +83,7 @@ func TestTransactionGetAndLen(t *testing.T) {
 	t2 := Transaction{2, 4, 1, 4, 1}
 	t3 := Transaction{3, 3, 2, 5, 1}
 
-	trs := Transactions{t1, t2, t3}
+	trs := TransactionSlice{t1, t2, t3}
 
 	if trs.Get(0) != trs.Get(1) {
 		t.Error("mismatch index=", 0, trs.Get(1))
@@ -109,7 +109,7 @@ func TestTransactionSetHit(t *testing.T) {
 	t2 := Transaction{2, 4, 1, 4, 0}
 	t3 := Transaction{3, 3, 2, 5, 0}
 
-	trs := Transactions{t1, t2, t3}
+	trs := TransactionSlice{t1, t2, t3}
 
 	fmt.Println(trs)
 
@@ -147,7 +147,7 @@ func TestTransactionsSaveLoad(t *testing.T) {
 	f := create_file("/tmp/savedata2.bin")
 	tr.save(f)
 
-	var r1 Transactions
+	var r1 TransactionSlice
 	f1 := open_file("/tmp/savedata2.bin")
 	r1.load(f1)
 
@@ -162,10 +162,10 @@ func TestSortTransaction(t *testing.T) {
 	t2 := Transaction{2, 4, 1, 1, 1}
 	t3 := Transaction{3, 3, 1, 1, 1}
 
-	trs := Transactions{t1, t2, t3}
+	trs := TransactionSlice{t1, t2, t3}
 
 	fmt.Println(trs)
-	trs.time_sort()
+	trs.TimeSort()
 	fmt.Println(trs)
 }
 
@@ -298,7 +298,7 @@ func BenchmarkLoadLogBig(b *testing.B) {
 }
 
 func TestInitTransactions(t *testing.T) {
-	trans := Transactions{t1, t2, t3}
+	trans := TransactionSlice{t1, t2, t3}
 	fmt.Println(trans)
 
 	trans.init()

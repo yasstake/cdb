@@ -131,15 +131,6 @@ func file_to_time(file_path string) time.Time {
 	return time.Date(yy, time.Month(mm), dd, h, m, 0, 0, time.UTC)
 }
 
-// Store each transaction data from Bybit Exchange
-type Transaction struct {
-	Action     int8
-	Time_stamp int64
-	Price      int32
-	Volume     int64
-	OtherInfo  int64
-}
-
 func (c *Transaction) info_string() (result string) {
 	result += DateTime(c.Time_stamp).String()
 	result += "{Action:" + strconv.Itoa(int(c.Action)) + "}"
@@ -159,15 +150,12 @@ func (t *Transaction) load(stream io.ReadCloser) Transaction {
 	return *t
 }
 
-// Array of transaction
-type Transactions []Transaction
-
-func (t *Transactions) init() {
-	*t = make(Transactions, 0, 1000)
+func (t *TransactionSlice) init() {
+	*t = make(TransactionSlice, 0, 1000)
 }
 
 // Implement OiItem interface
-func (c *Transactions) Get(index int) int {
+func (c *TransactionSlice) Get(index int) int {
 	i := int((index) / 2)
 	value := int((*c)[i].Volume)
 
@@ -175,7 +163,7 @@ func (c *Transactions) Get(index int) int {
 }
 
 // Implement OiItem interface
-func (c *Transactions) Hit(index int) {
+func (c *TransactionSlice) Hit(index int) {
 	fmt.Println("HIT", c.Get(index))
 	i := int((index) / 2)
 	offset := index % 2
@@ -188,11 +176,11 @@ func (c *Transactions) Hit(index int) {
 }
 
 // Implement OiItem interface
-func (c *Transactions) Len() int {
+func (c *TransactionSlice) Len() int {
 	return len(*c) * 2
 }
 
-func (t Transactions) save(stream io.WriteCloser) {
+func (t TransactionSlice) save(stream io.WriteCloser) {
 	length := int32(len(t))
 	binary.Write(stream, binary.LittleEndian, &length)
 	for i := 0; i < int(length); i++ {
@@ -200,11 +188,11 @@ func (t Transactions) save(stream io.WriteCloser) {
 	}
 }
 
-func (t *Transactions) load(stream io.ReadCloser) Transactions {
+func (t *TransactionSlice) load(stream io.ReadCloser) TransactionSlice {
 	var length int32
 	binary.Read(stream, binary.LittleEndian, &length)
 
-	re := make(Transactions, length)
+	re := make(TransactionSlice, length)
 
 	for i := 0; i < int(length); i++ {
 		re[i] = re[i].load(stream)
@@ -214,7 +202,7 @@ func (t *Transactions) load(stream io.ReadCloser) Transactions {
 	return *t
 }
 
-func (c Transactions) time_sort() {
+func (c TransactionSlice) TimeSort() {
 	sort.Slice(c, func(i, j int) bool { return c[i].Time_stamp < c[j].Time_stamp })
 }
 
@@ -321,7 +309,7 @@ func (board *Board) Sort(asc bool) (orders Order) {
 type Chunk struct {
 	bid_board Board
 	ask_board Board
-	trans     Transactions
+	trans     TransactionSlice
 
 	/* Ensure one funding record in one chunk we must buffer latest info
 	funding_rate         Transaction
@@ -403,7 +391,7 @@ func (c *Chunk) LoadTime(time time.Time) error {
 	return c.load_file(path)
 }
 
-func (c *Chunk) GetTran() (result Transactions) {
+func (c *Chunk) GetTran() (result TransactionSlice) {
 	for i := range c.trans {
 		action := c.trans[i].Action
 		if action == UPDATE_BUY || action == UPDATE_SELL || action == PARTIAL {
