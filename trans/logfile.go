@@ -16,38 +16,6 @@ import (
 	"time"
 )
 
-// Action
-const PARTIAL = 1
-const UPDATE_SELL = 2
-const UPDATE_BUY = 3
-
-// trade
-const TRADE_BUY = 4
-const TRADE_BUY_LIQUID = 5
-
-const TRADE_SELL = 6
-const TRADE_SELL_LIQUID = 7
-
-// Open Interest
-// action, time, 0,, volume,
-const OPEN_INTEREST = 10
-
-// Open Value
-// action, time, 0, volume
-const OPEN_VALUE = 11
-
-// Turn Over
-// action, time, 0, volume
-const TURN_OVER = 12
-
-// Funding Rate
-// action, time, 0, volume, next time
-const FUNDING_RATE = 20
-
-// Next Funding Rate
-// action, time, 0, volume, next time
-const PREDICTED_FUNDING_RATE = 21
-
 var DB_ROOT = "/tmp/BITLOG"
 
 const VOLUME_MAG = 1000
@@ -203,7 +171,17 @@ func (t *TransactionSlice) load(stream io.ReadCloser) TransactionSlice {
 }
 
 func (c TransactionSlice) TimeSort() {
-	sort.Slice(c, func(i, j int) bool { return c[i].Time_stamp < c[j].Time_stamp })
+	compare := func(i, j int) bool {
+		if c[i].Time_stamp < c[j].Time_stamp {
+			return true
+		} else if c[i].Time_stamp == c[j].Time_stamp && c[i].Action < c[j].Action {
+			return true
+		}
+		return false
+	}
+
+	sort.Slice(c, compare)
+
 }
 
 // Store order book

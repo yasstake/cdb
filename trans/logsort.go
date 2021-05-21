@@ -42,6 +42,8 @@ func LogLoad(from_file string) (result TransactionSlice) {
 	}
 	defer f.Close()
 
+	log.Println("loading... file=", from_file)
+
 	compress := strings.HasSuffix(from_file, ".gz")
 	var r *csv.Reader
 	if compress {
@@ -56,11 +58,12 @@ func LogLoad(from_file string) (result TransactionSlice) {
 
 	var current_time int64
 	var current_price int32
+	partial := false
 
 	for {
 		row, err := r.Read()
 		if err == io.EOF {
-			fmt.Println("[PROCESS DONE]")
+			log.Println("load done")
 			break
 		}
 		if err != nil {
@@ -76,6 +79,9 @@ func LogLoad(from_file string) (result TransactionSlice) {
 					log.Println("[ACTION]", err, v)
 				}
 				record.Action = int8(r)
+				if record.Action == PARTIAL {
+					partial = true
+				}
 			case 1: // Time(us)
 				t, err := strconv.ParseInt(v, 10, 64)
 				if err != nil {
@@ -113,7 +119,11 @@ func LogLoad(from_file string) (result TransactionSlice) {
 				}
 			}
 		}
-		result = append(result, record)
+
+		// ignore messages before partial message comes
+		if partial {
+			result = append(result, record)
+		}
 	}
 
 	return result

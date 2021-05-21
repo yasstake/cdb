@@ -69,6 +69,7 @@ func TestCalcExecPrice(t *testing.T) {
 	var count int
 	var lowest_buy, highest_sell int
 	var last_lowest_buy, last_highest_sell int
+	var price_change_tran TransactionSlice
 
 	for i = 0; i < l; i++ {
 		start_time := exec_tran[i].Time_stamp
@@ -97,13 +98,17 @@ func TestCalcExecPrice(t *testing.T) {
 		highest_sell = findPrice(sell_price, 0, false)
 
 		if last_lowest_buy != lowest_buy {
-			fmt.Println("BUY CHANGE", lowest_buy)
+			// fmt.Println("BUY CHANGE", lowest_buy)
 			last_lowest_buy = lowest_buy
+			tr := Transaction{TRADE_BUY_PRICE, exec_tran[i].Time_stamp, int32(last_lowest_buy), 0, 0}
+			price_change_tran = append(price_change_tran, tr)
 		}
 
 		if last_highest_sell != highest_sell {
-			fmt.Println("SELL CAHGEN", highest_sell)
+			// fmt.Println("SELL CAHGEN", highest_sell)
 			last_highest_sell = highest_sell
+			tr := Transaction{TRADE_SELL_PRICE, exec_tran[i].Time_stamp, int32(last_highest_sell), 0, 0}
+			price_change_tran = append(price_change_tran, tr)
 		}
 
 		if action == TRADE_BUY {
@@ -113,6 +118,10 @@ func TestCalcExecPrice(t *testing.T) {
 		}
 	}
 
+	r = append(r, price_change_tran...)
+	r.TimeSort()
+	CsvWriteToFile(r, "/tmp/tran.csv")
+	fmt.Println(len(r))
 	//fmt.Println(buy_price)
 	//fmt.Println(sell_price)
 	fmt.Println(count)
