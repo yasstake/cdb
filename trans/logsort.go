@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+const TIME_GRAD = 1_000_000 // 1_000_000[ns]=ms
+
 func CsvWriteToFile(data TransactionSlice, file_name string) {
 	fw, err := os.Create(file_name)
 	if err != nil {
@@ -25,11 +27,12 @@ func CsvWrite(data TransactionSlice, stream io.Writer) {
 	var current_price int32
 
 	for i := range data {
+		t := int64(data[i].Time_stamp / TIME_GRAD)
 		r := fmt.Sprintf("%d,%d,%d,%d,%d\n",
-			data[i].Action, data[i].Time_stamp-current_time, data[i].Price-current_price, data[i].Volume, data[i].OtherInfo)
+			data[i].Action, t-current_time, data[i].Price-current_price, data[i].Volume, data[i].OtherInfo)
 
 		stream.Write([]byte(r))
-		current_time = data[i].Time_stamp
+		current_time = t
 		current_price = data[i].Price
 	}
 }
@@ -63,7 +66,9 @@ func LogLoad(from_file string) (result TransactionSlice) {
 	for {
 		row, err := r.Read()
 		if err == io.EOF {
-			log.Println("load done")
+			start_time := DateTime(result[0].Time_stamp)
+			end_time := DateTime(result[len(result)-1].Time_stamp)
+			log.Println("load done from=", start_time, "  end=", end_time)
 			break
 		}
 		if err != nil {
@@ -87,7 +92,7 @@ func LogLoad(from_file string) (result TransactionSlice) {
 				if err != nil {
 					log.Println("[TIMESTAMP]", err, v)
 				}
-				record.Time_stamp = (t + current_time) * 1_000_000 // convert to ns
+				record.Time_stamp = (t + current_time) * TIME_GRAD // convert to ns
 				current_time = t + current_time
 
 			case 2: // Price
