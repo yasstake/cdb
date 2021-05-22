@@ -3,6 +3,7 @@ package trans
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -16,14 +17,6 @@ type Db struct {
 	*/
 }
 
-type TranReader interface {
-	ReadTran() (Transaction, error)
-}
-
-type OhlcvReader interface {
-	ReadOhlcv() (Ohlcv, error)
-}
-
 type DbSession struct {
 	db            *Db
 	current_start time.Time
@@ -33,6 +26,34 @@ type DbSession struct {
 	chunk_len     int
 	current_index int
 	chunk         Chunk
+}
+
+func (c *DbSession) ToString() (result string) {
+	result = c.current_start.String() + " " + c.current_end.String() + " " + strconv.Itoa(c.chunk_len)
+	return result
+}
+
+// Open Data store directory and setup time chunks(Data begin and ends)
+func (c *Db) Open(path string) {
+	SetDbRoot(path)
+	c.base_path = DB_ROOT
+	c.time_chunks = TimeChunks(DB_ROOT)
+}
+
+// Return chunk which contains time specified
+func (c *Db) CreateSession(t time.Time) (session DbSession, err error) {
+	session.db = c
+	err = session.LoadTime(t)
+
+	return session, err
+}
+
+type TranReader interface {
+	ReadTran() (Transaction, error)
+}
+
+type OhlcvReader interface {
+	ReadOhlcv() (Ohlcv, error)
 }
 
 // Load data at time to session
@@ -72,21 +93,6 @@ func (c *DbSession) LoadBefore() (err error) {
 
 func (c *Db) GetTimeChunks() TimeFrames {
 	return c.time_chunks
-}
-
-// Open Data store directory
-func (c *Db) Open(path string) {
-	SetDbRoot(path)
-	c.base_path = DB_ROOT
-	c.time_chunks = Time_chunks(DB_ROOT)
-}
-
-// Return chunk which contains time.
-func (c *Db) CreateSession(t time.Time) (session DbSession, err error) {
-	session.db = c
-	err = session.LoadTime(t)
-
-	return session, err
 }
 
 // Retrive order book board information from logdb

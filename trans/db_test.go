@@ -31,7 +31,9 @@ func TestOpenSession(t *testing.T) {
 
 	session, _ := database.CreateSession(time)
 
-	fmt.Println(session)
+	fmt.Println(session.ToString())
+	fmt.Println(session.chunk.ToString())
+	fmt.Println(session.chunk.trans[session.chunk_len-1].info_string())
 }
 
 func TestGetTransaction(t *testing.T) {
@@ -55,7 +57,7 @@ func TestGetTransaction(t *testing.T) {
 		if err != nil {
 			break
 		}
-		fmt.Println(r)
+		fmt.Println(r.ToString())
 	}
 
 }

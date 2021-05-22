@@ -1,8 +1,10 @@
 package trans
 
 import (
+	"fmt"
 	"log"
 	"sort"
+	"strconv"
 )
 
 // Action
@@ -18,9 +20,11 @@ const TRADE_SELL = 6
 const TRADE_SELL_LIQUID = 7
 
 // buy edge price
+// action, time, BUY_PRICE, 0, 0
 const TRADE_BUY_PRICE = 8
 
 // sell edge price
+// action, time, SELL_PRICE, 0, 0
 const TRADE_SELL_PRICE = 9
 
 // Open Interest
@@ -43,9 +47,31 @@ const FUNDING_RATE = 20
 // action, time, 0, volume, next time
 const PREDICTED_FUNDING_RATE = 21
 
+var ACTION_STRING map[int]string
+
+func init() {
+	fmt.Println("INITIALIZED")
+
+	ACTION_STRING = map[int]string{
+		PARTIAL:                "PARTIAL",
+		UPDATE_SELL:            "UPD_SEL",
+		UPDATE_BUY:             "UPD_BUY",
+		TRADE_BUY:              "TR__BUY",
+		TRADE_BUY_LIQUID:       "TR_BUYL",
+		TRADE_SELL:             "TR__SEL",
+		TRADE_SELL_LIQUID:      "TR_SELL",
+		TRADE_BUY_PRICE:        "TR_BUYP",
+		TRADE_SELL_PRICE:       "TR_SELP",
+		OPEN_INTEREST:          "OP_INTT",
+		OPEN_VALUE:             "OP_VALU",
+		TURN_OVER:              "TU_OVER",
+		FUNDING_RATE:           "FU_RATE",
+		PREDICTED_FUNDING_RATE: "PR_FD_R",
+	}
+}
+
 // Use gen: slice typewriter
 // https://clipperhouse.com/gen/slice/
-
 // Store each transaction data from Bybit Exchange
 // +gen slice:"Where, GroupBy[int32], Count, SortBy"
 type Transaction struct {
@@ -54,6 +80,17 @@ type Transaction struct {
 	Price      int32
 	Volume     int64
 	OtherInfo  int64
+}
+
+func (c *Transaction) ToString() (r string) {
+	price := strconv.Itoa(int(c.Price))
+	vol := strconv.Itoa(int(c.Volume))
+	other := strconv.Itoa(int(c.OtherInfo))
+
+	r = ACTION_STRING[int(c.Action)] + " " + DateTime(c.Time_stamp).String() + " " +
+		price + " " + vol + " " + other
+
+	return r
 }
 
 //type TransactionSlice []TransactionSlice

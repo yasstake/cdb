@@ -283,11 +283,18 @@ func TestLoadLog(t *testing.T) {
 	tr := Load_log("../../../../DATA/bb2.log")
 
 	fmt.Println(tr)
-	fmt.Println(tr.info_string())
+	fmt.Println(tr.ToString())
 }
 
 func TestLoadLogBig(t *testing.T) {
 	Load_log("../../../../DATA/BB2-2021-02-20T23-45-52.008914Z.log.gz")
+}
+
+func TestLoadLogBigAll(t *testing.T) {
+	Load_log("../DATA/2021-05-21T20-32-07.log.gz")
+	//Load_log("../DATA/2021-05-21T20-32-07.log.gz")
+	//Load_log("../DATA/2021-05-21T20-32-07.log.gz")
+	//Load_log("../DATA/2021-05-21T20-32-07.log.gz")
 }
 
 func BenchmarkLoadLogBig(b *testing.B) {

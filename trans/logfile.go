@@ -295,7 +295,7 @@ type Chunk struct {
 	*/
 }
 
-func (c Chunk) info_string() string {
+func (c Chunk) ToString() string {
 	bid_len := len(c.bid_board)
 	ask_len := len(c.ask_board)
 	trans_len := len(c.trans)
@@ -656,6 +656,11 @@ func Load_log(file string) (chunk Chunk) {
 	var current_time int64
 	var current_price int32
 
+	// TODO: wait partial message comes.
+	// TODO: add execute price for each chunks
+	partial := bool(false)
+	var last_lowest_buy, last_highest_sell int
+
 	for {
 		row, err := r.Read()
 		if err == io.EOF {
@@ -694,6 +699,7 @@ func Load_log(file string) (chunk Chunk) {
 		if record.Action == PARTIAL {
 			bid_board.init()
 			ask_board.init()
+			partial = true
 		} else if record.Action == UPDATE_BUY || record.Action == UPDATE_SELL {
 			time := DateTime(record.Time_stamp)
 			min := time.Minute()
@@ -707,8 +713,12 @@ func Load_log(file string) (chunk Chunk) {
 						duration := chunk.trans[tr_len-1].Time_stamp - chunk.trans[0].Time_stamp
 
 						if 30*1000000 <= duration {
+							buy := Transaction{TRADE_SELL_PRICE, chunk.trans[0].Time_stamp, int32(last_highest_sell), 0, 0}
+							sell := Transaction{TRADE_BUY_PRICE, chunk.trans[0].Time_stamp, int32(last_lowest_buy), 0, 0}
+							t := TransactionSlice{buy, sell}
+							chunk.trans = append(t, chunk.trans...)
 							chunk.dump()
-							fmt.Println("DUMP", chunk.info_string())
+							fmt.Println("DUMP", chunk.ToString())
 						}
 					}
 				}
@@ -725,9 +735,16 @@ func Load_log(file string) (chunk Chunk) {
 			} else {
 				log.Fatal("Unknown action")
 			}
+
+		} else if record.Action == TRADE_BUY_PRICE {
+			last_lowest_buy = int(record.Price)
+		} else if record.Action == TRADE_SELL_PRICE {
+			last_highest_sell = int(record.Price)
 		}
 
-		chunk.Append(record)
+		if partial {
+			chunk.Append(record)
+		}
 	}
 
 	return chunk

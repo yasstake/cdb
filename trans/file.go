@@ -106,7 +106,7 @@ func (c TimeFrames) ToString() string {
 //     BASE_PATH
 //         +-----YYYY-MM-DD
 //                    +------ HH-MM.log.gz
-func Time_chunks(base_path string) (times TimeFrames) {
+func TimeChunks(base_path string) (times TimeFrames) {
 	// Open LogDir and sort
 	files, err := ioutil.ReadDir(base_path)
 

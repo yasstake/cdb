@@ -22,7 +22,7 @@ func main() {
 		load_files(flag.Args())
 	}
 
-	chunks := trans.Time_chunks(trans.DB_ROOT)
+	chunks := trans.TimeChunks(trans.DB_ROOT)
 	fmt.Println(chunks.ToString())
 }
 

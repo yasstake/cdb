@@ -91,7 +91,7 @@ func TestBefore(t *testing.T) {
 }
 
 func TestTimeChunks(t *testing.T) {
-	chunks := Time_chunks(DB_ROOT)
+	chunks := TimeChunks(DB_ROOT)
 	fmt.Println(chunks[0].start, chunks[0].end)
 	fmt.Println(chunks.ToString())
 }
