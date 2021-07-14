@@ -62,6 +62,32 @@ func TestGetTransaction(t *testing.T) {
 
 }
 
+func BenchmarkTransaction(b *testing.B) {
+	database := Open()
+
+	start_time := database.time_chunks[0].start
+	fmt.Println(start_time.String())
+
+	session, _ := database.CreateSession(start_time)
+
+	for i := 0; i < b.N; i++ {
+		reader, err := session.SelectTrans(start_time, start_time.Add(10*time.Minute))
+
+		if err != nil {
+			log.Println(err)
+			b.Error()
+		}
+
+		for {
+			_, err := reader.ReadTran()
+
+			if err != nil {
+				break
+			}
+		}
+	}
+}
+
 /*
 func TestLoadAndOhlcv(t *testing.T) {
 	var c Chunk

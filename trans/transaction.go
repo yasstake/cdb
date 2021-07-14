@@ -1,7 +1,6 @@
 package trans
 
 import (
-	"fmt"
 	"log"
 	"sort"
 	"strconv"
@@ -50,8 +49,6 @@ const PREDICTED_FUNDING_RATE = 21
 var ACTION_STRING map[int]string
 
 func init() {
-	fmt.Println("INITIALIZED")
-
 	ACTION_STRING = map[int]string{
 		PARTIAL:                "PARTIAL",
 		UPDATE_SELL:            "UPD_SEL",

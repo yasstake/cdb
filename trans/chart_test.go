@@ -23,7 +23,7 @@ func (c *PlotlyOhlc) init() {
 	c.Yaxis = "y"
 }
 
-func (c *PlotlyOhlc) append(rec Ohlcv) {
+func (c *PlotlyOhlc) Append(rec Ohlcv) {
 	if rec.open == 0 {
 		return
 	}
@@ -50,16 +50,23 @@ func TestDumpPlotly(t *testing.T) {
 	o1 := Ohlcv{1000000000, 1, 2, 3, 4, 5, 6, 0}
 	o2 := Ohlcv{2000000000, 7, 9, 10, 11, 12, 13, 14}
 
-	plot.append(o1)
-	plot.append(o2)
+	plot.Append(o1)
+	plot.Append(o2)
 	s := plot.dump()
 	fmt.Println(s)
 }
 
 func TestMakeData(t *testing.T) {
+	var db Db
+	db.Open("/tmp")
+
+	s := db.time_chunks[0].start
+	// session, _ := db.CreateSession(s)
+
 	var c Chunk
-	s_time := DateTime(1613864762187260 * 1000)
-	c.LoadTime(s_time)
+
+	// s_time := DateTime(1613864762187260 * 1000)
+	c.LoadTime(s)
 
 	ohlcvs := c.GetOhlcvSec()
 
@@ -70,8 +77,8 @@ func TestMakeData(t *testing.T) {
 		if ohlcvs[i].open == 0 {
 			continue
 		}
-		plot.append(ohlcvs[i])
+		plot.Append(ohlcvs[i])
 	}
-	s, _ := json.Marshal(plot)
-	fmt.Println(string(s))
+	str, _ := json.Marshal(plot)
+	fmt.Println(string(str))
 }

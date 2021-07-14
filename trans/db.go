@@ -40,9 +40,21 @@ func (c *Db) Open(path string) {
 	c.time_chunks = TimeChunks(DB_ROOT)
 }
 
+// Get DB stat time(first chunks start)
+func (c *Db) GetStartTime() (t time.Time) {
+	if len(c.time_chunks) == 0 {
+		return
+	}
+
+	t = c.time_chunks[0].start
+
+	return t
+}
+
 // Return chunk which contains time specified
 func (c *Db) CreateSession(t time.Time) (session DbSession, err error) {
 	session.db = c
+
 	err = session.LoadTime(t)
 
 	return session, err

@@ -7,6 +7,13 @@ import (
 	"testing"
 )
 
+const TEST_LOG_FILE1 = "../DATA/2021-05-21T00-06-32.log.gz"
+const TEST_LOG_FILE2 = "../DATA/2021-05-21T04-11-43.log.gz"
+const TEST_LOG_FILE3 = "../DATA/2021-05-21T08-16-54.log.gz"
+const TEST_LOG_FILE4 = "../DATA/2021-05-21T12-21-55.log.gz"
+const TEST_LOG_FILE5 = "../DATA/2021-05-21T16-27-06.log.gz"
+const TEST_LOG_FILE6 = "../DATA/2021-05-21T20-32-07.log.gz"
+
 func TestCsvWrite(t *testing.T) {
 	t1 := Transaction{1, 1, 1, 1, 1}
 	t2 := Transaction{2, 4, 1, 1, 1}
@@ -21,7 +28,7 @@ func TestCsvWrite(t *testing.T) {
 }
 
 func TestLogLoad(t *testing.T) {
-	r := LogLoad("../DATA/2021-05-05T23-07-09.log.gz")
+	r := LogLoad(TEST_LOG_FILE1)
 
 	r.TimeSort()
 }
